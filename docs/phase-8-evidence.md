@@ -43,6 +43,8 @@ Repository-side work was verified locally on 2026-08-22 and the authorized provi
 - The private `application-documents` bucket is now present with a 10 MiB limit, PDF/DOCX allowlist, and four authenticated owner-path policies.
 - A controlled production priority alert was accepted and delivered by Resend exactly once with the durable outbox/delivery rows recorded. This exposed and led to a fix for the sender treating a successful PostgREST `204 No Content` RPC response as JSON.
 - Vercel reported a successful production deployment for commit `67c396a`, which contains the sender fix.
+- Recovery workflow run [#14](https://github.com/Y3EGAN/internship-radar/actions/runs/32664932082) completed successfully on commit `2c07fec`, proving the fixed sender exits cleanly in the hosted poller even when the durable outbox has no additional work.
+- GitHub's Node 20 deprecation warning from that run was resolved by updating checkout, setup-node, and pnpm setup to their current official Node 24-based releases while retaining immutable commit pins.
 
 ## Open hosted cutover gate
 
