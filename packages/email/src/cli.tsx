@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { sendClaimedEmail, type ClaimedEmail, type PriorityJobEmailItem } from "./index";
+import { readJsonResponse } from "./http";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -22,7 +23,7 @@ async function databaseRequest(path: string, body?: unknown): Promise<unknown> {
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   if (!response.ok) throw new Error("email database operation failed");
-  return response.json();
+  return readJsonResponse(response);
 }
 
 async function rpc(name: string, args: Record<string, unknown>): Promise<unknown> {

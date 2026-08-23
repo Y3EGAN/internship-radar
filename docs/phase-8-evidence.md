@@ -34,17 +34,21 @@ Repository-side work was verified locally on 2026-08-22 and the authorized provi
 - A Supabase Free project was created in `ca-central-1`, all fourteen migrations were applied, and the hosted project is healthy.
 - Hosted advisor review exposed overly broad executable privileges on two companion functions. They now use invoker security, anonymous execution is explicitly revoked, authenticated-owner table policies are present, and the hosted security advisor is clear.
 - The private tracker and CV were read only for the authorized migration. The exact counts-only plan fingerprint is retained in ignored local storage for the fail-closed apply; no applicant content or credential is recorded here.
-- A GitHub OAuth application form is prepared in the authenticated browser with the Supabase callback. Registration and returned-secret entry remain deliberate manual dashboard actions.
-- A production Vercel deployment was attempted through the authorized connector, but the connector quota is unavailable until 2026-08-27 10:30 America/Toronto. No paid-plan workaround was used.
+- GitHub OAuth was registered with the Supabase callback, its credentials were entered directly in the provider dashboard, and the first owner login succeeded without exposing returned secrets.
+- The public repository is deployed to Vercel production on Hobby. The live authenticated dashboard, job filters, mobile layout, and browser console were verified after deployment.
+- GitHub OAuth is configured: production has exactly one GitHub identity and an active owner session.
+- The approved private migration is live. Production counts reconcile to 1 profile plus 24 evidence rows, 123 companies/sources, the 17 imported jobs followed by hosted discoveries, and the 12 historical runs followed by hosted runs.
+- Production has 98 active verified sources across four ATS types, more than three successful hosted cycles, zero canonical-URL duplicate groups, and zero source-identity duplicate groups.
+- The private `application-documents` bucket is now present with a 10 MiB limit, PDF/DOCX allowlist, and four authenticated owner-path policies.
+- A controlled production priority alert was accepted and delivered by Resend exactly once with the durable outbox/delivery rows recorded. This exposed and led to a fix for the sender treating a successful PostgREST `204 No Content` RPC response as JSON.
 
 ## Open hosted cutover gate
 
-No deployment or email has occurred, provider secrets have not been exposed to the repository or chat, the private plan has not been applied without a real owner identity, and no local device has been paired. The following authoritative gate conditions remain unverified:
+No provider secret has been exposed to the repository or chat, and no local device has been paired. The following authoritative gate conditions remain unverified:
 
-- configure GitHub OAuth, create the allowlisted owner by signing in once, and enter server-only credentials directly in provider dashboards;
-- apply the exact private plan in production and rerun it idempotently;
-- three consecutive hosted parallel cycles without duplicates;
-- hosted alert, owner auth, package, local-fill/manual-review, and pairing/revocation E2E;
+- rerun the exact approved private plan once more to record explicit idempotency evidence;
+- update the Vercel `RESEND_WEBHOOK_SECRET` directly from the enabled Resend webhook, replay the delivered event, and verify the database delivery transition;
+- hosted package, local-fill/manual-review, and pairing/revocation E2E;
 - permanent cessation of Google Sheet writes with the Sheet preserved as an archive;
 - post-cutover confirmation that Supabase, Resend, Vercel, and GitHub all remain at $0.
 

@@ -37,6 +37,7 @@ add("workflow:bounded", workflow.includes("timeout-minutes: 4") && workflow.incl
 add("schema:free-email-caps", /daily_email_cap between 1 and 50/.test(schema) && /monthly_email_cap between 1 and 2500/.test(schema), "below Resend Free limits");
 add("schema:resource-soft-limits", /database_soft_limit_mb between 1 and 400/.test(schema) && /storage_soft_limit_mb between 1 and 800/.test(schema), "below Supabase Free limits");
 add("schema:all-function-sources", ["03_preparation_functions.sql", "03_companion_functions.sql"].every((name) => config.includes(name)), "preparation and companion schemas included");
+add("storage:private-application-documents", /\[storage\.buckets\.application-documents\][\s\S]*?public\s*=\s*false[\s\S]*?file_size_limit\s*=\s*"10MiB"/.test(config), "private 10 MiB application document bucket declared");
 add("runtime:pinned", packageJson.packageManager === "pnpm@10.34.5" && packageJson.engines?.node === ">=22 <23", "Node 22 and pnpm 10");
 add("vercel:next-monorepo", vercel.framework === "nextjs" && vercel.installCommand.includes("--frozen-lockfile") && vercel.buildCommand.includes("verify-browser-bundle.mjs"), "locked install, scoped build, bundle secret scan");
 add("vercel:no-cron", !Object.hasOwn(vercel, "crons"), "GitHub owns five-minute scheduling");
@@ -58,6 +59,16 @@ async function rest(path, url, serviceKey) {
   return response.json();
 }
 
+async function storageBucket(id, url, serviceKey) {
+  const response = await fetch(`${url.replace(/\/$/, "")}/storage/v1/bucket/${encodeURIComponent(id)}`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Accept: "application/json" },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Production storage read failed with HTTP ${response.status}`);
+  return response.json();
+}
+
 if (production) {
   const url = requiredEnv("SUPABASE_URL");
   const serviceKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -68,12 +79,13 @@ if (production) {
     add(`attestation:${name}`, process.env[name]?.toLowerCase() === expected, `must equal ${expected}`);
   }
   const encodedOwner = encodeURIComponent(ownerId);
-  const [sources, runs, jobs, emails, applications] = await Promise.all([
+  const [sources, runs, jobs, emails, applications, documentBucket] = await Promise.all([
     rest(`source_endpoints?select=ats,verified_at,state&owner_id=eq.${encodedOwner}`, url, serviceKey),
     rest(`source_runs?select=outcome,started_at,discovered_count&owner_id=eq.${encodedOwner}&order=started_at.desc&limit=3`, url, serviceKey),
     rest(`jobs?select=canonical_url&owner_id=eq.${encodedOwner}&canonical_url=not.is.null`, url, serviceKey),
     rest(`email_outbox?select=state&owner_id=eq.${encodedOwner}&state=in.(sent,delivered)`, url, serviceKey),
     rest(`applications?select=state&owner_id=eq.${encodedOwner}&state=eq.ready_for_review`, url, serviceKey),
+    storageBucket("application-documents", url, serviceKey),
   ]);
   const verified = sources.filter((source) => source.verified_at && source.state !== "disabled");
   add("production:verified-sources", verified.length >= 75, `${verified.length} active verified endpoints`);
@@ -83,6 +95,7 @@ if (production) {
   add("production:no-canonical-duplicates", new Set(urls).size === urls.length, `${urls.length - new Set(urls).size} duplicate canonical URLs`);
   add("production:alert-flow", emails.length > 0, `${emails.length} sent or delivered outbox rows`);
   add("production:application-flow", applications.length > 0, `${applications.length} applications reached manual review`);
+  add("production:private-document-bucket", documentBucket?.public === false && documentBucket?.file_size_limit === 10 * 1024 * 1024, documentBucket ? "private 10 MiB bucket is available" : "bucket is missing");
 }
 
 const report = { mode: production ? "production-read-only" : "static", generatedAt: new Date().toISOString(), pass: checks.every((check) => check.pass), checks };

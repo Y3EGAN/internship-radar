@@ -12,7 +12,7 @@ This checklist maps directly to the authoritative Phase 0-8 implementation plan.
 | 5 - Authenticated dashboard | Complete | See `docs/phase-5-evidence.md`; owner gating, filters/cursors, pipeline, usage, signed URLs, browser checks, and bundle scanning pass. |
 | 6 - Codex package preparation | Complete | See `docs/phase-6-evidence.md`; truthful lifecycle, private APIs/artifacts, render QA, accessibility, and eval gates pass. |
 | 7 - Local Playwright agent | Complete | See `docs/phase-7-evidence.md`; pairing, DPAPI, durable queue, Chrome fixtures, pause/review, and no-submit gates pass. |
-| 8 - Migration, deployment, and cutover | In progress | See `docs/phase-8-evidence.md`; Supabase provisioning/security hardening and the private migration dry run are complete. Deployment, live apply, hosted cycles, and Sheet retirement remain open. |
+| 8 - Migration, deployment, and cutover | In progress | See `docs/phase-8-evidence.md`; production deployment, OAuth, migration, source import, and hosted polling evidence are complete. Alert/application E2E, idempotent re-apply, Sheet retirement, and final free-tier attestation remain open. |
 
 ## Phase 0 checklist
 
@@ -141,10 +141,12 @@ Gate evidence: `docs/phase-7-evidence.md`.
 - [x] Obtain explicit authorization for Supabase, Vercel, GitHub, Resend, GitHub OAuth, and provider configuration.
 - [x] Create the Supabase Free production project in Canada, apply all migrations, harden companion-function privileges, and clear the hosted security advisor.
 - [x] Live-verify at least 75 public employer endpoints across at least four ATS types (98 active endpoints across four ATS types passed both API and career-page checks; three unresolved boards remain disabled).
-- [ ] Import and reconcile the 98 verified public employer endpoints in the authorized production project.
+- [x] Import and reconcile the 98 verified public employer endpoints in the authorized production project.
 - [x] Dry-run the real private Sheet/CV snapshot with zero rejected rows and exact source/destination reconciliation; retain only an ignored private snapshot and counts-only report locally.
-- [ ] Apply the exact approved private plan and rerun it idempotently after owner OAuth and server-only credentials are configured.
-- [ ] Run three successful hosted cycles, alert/application E2E, device pairing/revocation, and the read-only production gate.
+- [x] Apply the exact approved private plan after owner OAuth and server-only credentials are configured; live counts reconcile to 1 profile, 24 evidence rows, 123 sources, 17 imported jobs plus discovered jobs, and 12 historical runs plus hosted runs.
+- [ ] Rerun the exact approved private plan to record explicit idempotency evidence.
+- [x] Run at least three successful hosted cycles with no canonical or source-identity duplicate groups.
+- [ ] Complete hosted alert/application E2E, device pairing/revocation, and the read-only production gate.
 - [ ] Disable all Google Sheet writes and preserve the Sheet unchanged as an archive.
 - [ ] Confirm every provider remains at $0 after cutover.
 
@@ -152,4 +154,4 @@ Current evidence: `docs/phase-8-evidence.md`. The Phase 8 gate is intentionally 
 
 ## External actions reserved for Phase 8
 
-Authorization has been granted. Supabase provisioning and remote schema verification are complete. GitHub OAuth registration is prepared for one manual dashboard submission; all returned secrets must be entered directly into provider dashboards. Vercel deployment is temporarily unavailable because the connector quota does not reset until 2026-08-27 10:30 America/Toronto. Resend setup, repository publication, hosted validation, and Google Sheet cutover remain open.
+Authorization has been granted. Supabase provisioning, GitHub OAuth owner login, public repository publication, Vercel production deployment, private migration apply, source import, and hosted polling are complete. Resend delivery/webhook validation, application/package/local-agent E2E, explicit migration re-apply evidence, Google Sheet cutover, and final provider-plan attestation remain open.
