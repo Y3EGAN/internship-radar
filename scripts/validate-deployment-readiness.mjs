@@ -69,6 +69,18 @@ async function storageBucket(id, url, serviceKey) {
   return response.json();
 }
 
+async function storageObjectExists(bucket, path, url, serviceKey) {
+  if (!path) return false;
+  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+  const response = await fetch(`${url.replace(/\/$/, "")}/storage/v1/object/info/${encodeURIComponent(bucket)}/${encodedPath}`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Accept: "application/json" },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (response.status === 404) return false;
+  if (!response.ok) throw new Error(`Production storage object read failed with HTTP ${response.status}`);
+  return true;
+}
+
 if (production) {
   const url = requiredEnv("SUPABASE_URL");
   const serviceKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -79,12 +91,21 @@ if (production) {
     add(`attestation:${name}`, process.env[name]?.toLowerCase() === expected, `must equal ${expected}`);
   }
   const encodedOwner = encodeURIComponent(ownerId);
-  const [sources, runs, jobs, emails, applications, documentBucket] = await Promise.all([
+  const [
+    sources, runs, jobs, deliveries, webhookEvents, applications, packages,
+    applicationEvents, consumedPairings, usedTokens, revokedTokens, documentBucket,
+  ] = await Promise.all([
     rest(`source_endpoints?select=ats,verified_at,state&owner_id=eq.${encodedOwner}`, url, serviceKey),
     rest(`source_runs?select=outcome,started_at,discovered_count&owner_id=eq.${encodedOwner}&order=started_at.desc&limit=3`, url, serviceKey),
     rest(`jobs?select=canonical_url&owner_id=eq.${encodedOwner}&canonical_url=not.is.null`, url, serviceKey),
-    rest(`email_outbox?select=state&owner_id=eq.${encodedOwner}&state=in.(sent,delivered)`, url, serviceKey),
-    rest(`applications?select=state&owner_id=eq.${encodedOwner}&state=eq.ready_for_review`, url, serviceKey),
+    rest(`email_deliveries?select=id,state&owner_id=eq.${encodedOwner}&state=eq.delivered`, url, serviceKey),
+    rest(`resend_webhook_events?select=delivery_id,event_type&owner_id=eq.${encodedOwner}&event_type=eq.email.delivered`, url, serviceKey),
+    rest(`applications?select=id,state&owner_id=eq.${encodedOwner}&state=eq.ready_for_review`, url, serviceKey),
+    rest(`application_packages?select=application_id,state,resume_path,verified_at&owner_id=eq.${encodedOwner}&state=eq.verified`, url, serviceKey),
+    rest(`application_events?select=application_id,event_type,actor_type&owner_id=eq.${encodedOwner}&event_type=eq.review_ready&actor_type=eq.local_agent`, url, serviceKey),
+    rest(`device_pairings?select=id&owner_id=eq.${encodedOwner}&consumed_at=not.is.null`, url, serviceKey),
+    rest(`device_tokens?select=id&owner_id=eq.${encodedOwner}&last_used_at=not.is.null`, url, serviceKey),
+    rest(`device_tokens?select=id&owner_id=eq.${encodedOwner}&revoked_at=not.is.null`, url, serviceKey),
     storageBucket("application-documents", url, serviceKey),
   ]);
   const verified = sources.filter((source) => source.verified_at && source.state !== "disabled");
@@ -93,8 +114,20 @@ if (production) {
   add("production:three-cycles", runs.length === 3 && runs.every((run) => run.outcome === "succeeded"), `${runs.filter((run) => run.outcome === "succeeded").length}/3 latest cycles succeeded`);
   const urls = jobs.map((job) => job.canonical_url);
   add("production:no-canonical-duplicates", new Set(urls).size === urls.length, `${urls.length - new Set(urls).size} duplicate canonical URLs`);
-  add("production:alert-flow", emails.length > 0, `${emails.length} sent or delivered outbox rows`);
-  add("production:application-flow", applications.length > 0, `${applications.length} applications reached manual review`);
+  const deliveredIds = new Set(deliveries.map((delivery) => delivery.id));
+  const providerDeliveredIds = new Set(webhookEvents.map((event) => event.delivery_id).filter((id) => id !== null));
+  const providerDeliveries = [...deliveredIds].filter((id) => providerDeliveredIds.has(id));
+  add("production:alert-webhook-flow", providerDeliveries.length > 0, `${providerDeliveries.length} provider-delivered messages have verified webhook events`);
+
+  const reviewApplicationIds = new Set(applications.map((application) => application.id));
+  const locallyReviewedIds = new Set(applicationEvents.map((event) => event.application_id));
+  const verifiedPackages = packages.filter((pkg) => pkg.verified_at && pkg.resume_path);
+  const candidatePackages = verifiedPackages.filter((pkg) => reviewApplicationIds.has(pkg.application_id) && locallyReviewedIds.has(pkg.application_id));
+  const documentChecks = await Promise.all(candidatePackages.map((pkg) => storageObjectExists("application-documents", pkg.resume_path, url, serviceKey)));
+  const completedApplicationIds = new Set(candidatePackages.filter((_, index) => documentChecks[index]).map((pkg) => pkg.application_id));
+  add("production:application-manual-review-flow", completedApplicationIds.size > 0, `${completedApplicationIds.size} applications have a verified private resume and local-agent review event`);
+  add("production:device-pairing-flow", consumedPairings.length > 0 && usedTokens.length > 0, `${consumedPairings.length} consumed pairings and ${usedTokens.length} used device tokens`);
+  add("production:device-revocation-flow", revokedTokens.length > 0, `${revokedTokens.length} revoked device tokens`);
   add("production:private-document-bucket", documentBucket?.public === false && documentBucket?.file_size_limit === 10 * 1024 * 1024, documentBucket ? "private 10 MiB bucket is available" : "bucket is missing");
 }
 

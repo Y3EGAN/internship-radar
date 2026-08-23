@@ -139,7 +139,7 @@ Gate evidence: `docs/phase-7-evidence.md`.
 - [x] Cover canonicalization, status mapping, duplicates, rejections, evidence deduplication, and complete row accounting with sanitized tests.
 - [x] Document provider setup, private résumé/evidence import, parallel validation, cutover, and rollback.
 - [x] Obtain explicit authorization for Supabase, Vercel, GitHub, Resend, GitHub OAuth, and provider configuration.
-- [x] Create the Supabase Free production project in Canada, apply all migrations, harden companion-function privileges, and clear the hosted security advisor.
+- [x] Create the Supabase Free production project in Canada, apply all migrations, harden companion-function privileges, and resolve all actionable hosted security-advisor findings. The remaining leaked-password warning describes a feature unavailable on Free.
 - [x] Live-verify at least 75 public employer endpoints across at least four ATS types (98 active endpoints across four ATS types passed both API and career-page checks; three unresolved boards remain disabled).
 - [x] Import and reconcile the 98 verified public employer endpoints in the authorized production project.
 - [x] Dry-run the real private Sheet/CV snapshot with zero rejected rows and exact source/destination reconciliation; retain only an ignored private snapshot and counts-only report locally.

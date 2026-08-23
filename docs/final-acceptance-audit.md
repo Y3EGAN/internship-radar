@@ -20,8 +20,10 @@ This matrix separates locally reproducible acceptance from hosted/private cutove
 | Sensitive or unknown answers stop for input | Pass | Planner/browser and companion lifecycle tests. |
 | No automated path can submit an application | Pass | Runtime action types, companion state machine, browser fixtures, and database constraints. |
 | Document evals contain no unsupported claims | Pass on sanitized evidence | Preparation eval and rendered anonymous artifact evidence; real CV import remains private. |
-| Supabase, Resend, Vercel, and GitHub remain free with fail-closed limits | Local limits pass; hosted billing observation open | Static limits and current official-plan review pass; confirm dashboards after cutover. |
+| Supabase, Resend, Vercel, and GitHub remain free with fail-closed limits | Current official limits and local controls pass; hosted billing observation open | Official limits were rechecked on 2026-08-23 and remain compatible with the internal caps; confirm dashboards after cutover. |
 | Google Sheet receives no writes after cutover | Open | The existing daily automation intentionally remains unchanged until three hosted parallel cycles pass; then update it to recovery/source-gap work only and attest `RADAR_SHEET_WRITES_DISABLED=true`. |
+
+The hosted Supabase organization is confirmed Free and the project is healthy. Its sole current security-advisor warning is leaked-password protection, which Supabase lists as unavailable on Free; enabling a paid plan solely to clear that warning would violate the $0 acceptance criterion.
 
 ## Additional prescribed product capabilities
 
