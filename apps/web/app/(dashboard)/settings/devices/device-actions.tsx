@@ -1,0 +1,6 @@
+"use client";
+import { useState } from "react";
+
+export function PairDevice(){const [code,setCode]=useState<string>();const [busy,setBusy]=useState(false);async function create(){setBusy(true);const response=await fetch("/api/devices/pair",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({operation:"create",deviceLabel:"Local companion"})});const body=await response.json();setBusy(false);if(response.ok)setCode(body.pairingCode);}return <section className="panel priority-panel"><h2>Pair a local companion</h2><p>Codes expire in ten minutes and can be used once.</p><button className="primary-action" type="button" onClick={create} disabled={busy}>{busy?"Creating…":"Create pairing code"}</button>{code?<p className="pairing-code" role="status"><strong>Shown once:</strong> <code>{code}</code><br/><span>Run <code>radar pair &lt;code&gt;</code> on this Windows device.</span></p>:null}</section>}
+
+export function RevokeDevice({tokenId}:{tokenId:number}){const [done,setDone]=useState(false);async function revoke(){const response=await fetch("/api/devices/revoke",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({tokenId})});if(response.ok)setDone(true);}return <button className="text-button" type="button" onClick={revoke} disabled={done}>{done?"Revoked":"Revoke"}</button>}

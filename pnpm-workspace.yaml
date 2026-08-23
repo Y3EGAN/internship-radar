@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+  - emails
+
+allowBuilds:
+  esbuild: set this to true or false
+
+overrides:
+  baseline-browser-mapping: 2.11.17

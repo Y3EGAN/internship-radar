@@ -1,0 +1,17 @@
+{
+  "name": "@internship-radar/poller",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "poll": "tsx src/cli.ts",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@internship-radar/core": "workspace:*",
+    "@internship-radar/test-fixtures": "workspace:*"
+  }
+}

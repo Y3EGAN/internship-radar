@@ -1,0 +1,45 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# Dependencies and build outputs
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+
+# Applicant data and local-only artifacts
+outputs/
+tmp/
+browser-profiles/
+playwright-report/
+.playwright-cli/
+test-results/
+*.trace.zip
+*.har
+*.doc
+*.docx
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.tsv
+*.dump
+*.dump.enc
+*.dpapi
+*.sql.gz
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

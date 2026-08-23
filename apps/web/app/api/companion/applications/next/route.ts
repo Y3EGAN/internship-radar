@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { authenticateDevice } from "../../../../../lib/device-auth";
+
+export async function GET(request:Request){const auth=await authenticateDevice(request);if(!auth)return NextResponse.json({error:"unauthorized"},{status:401});const {data,error}=await auth.client.rpc("claim_next_companion_application",{p_token_hash:auth.tokenHash});if(error)return NextResponse.json({error:"claim_failed"},{status:409});if(!data?.[0])return new NextResponse(null,{status:204});const item=data[0];const pkg=item.package as {resume_path?:string|null;cover_letter_path?:string|null};const paths=[pkg.resume_path,pkg.cover_letter_path].filter((path):path is string=>Boolean(path));const signed=await Promise.all(paths.map(async path=>({path,url:(await auth.client.storage.from("application-documents").createSignedUrl(path,300)).data?.signedUrl})));return NextResponse.json({application:item,documents:signed.filter(item=>item.url)});}

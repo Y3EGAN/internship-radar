@@ -1,0 +1,26 @@
+{
+  "candidate": {
+    "name": "Sample Candidate",
+    "contactLines": ["Toronto, ON", "candidate@example.invalid"]
+  },
+  "summary": "Engineering student focused on safe, observable software for robotics systems.",
+  "evidence": [
+    { "id": 101, "fact": "Built a TypeScript telemetry dashboard that reduced fixture triage time by 20%." },
+    { "id": 102, "fact": "Implemented deterministic tests for a simulated robot control service." }
+  ],
+  "sections": [
+    {
+      "heading": "Selected experience",
+      "items": [
+        { "text": "Built a TypeScript telemetry dashboard that reduced fixture triage time by 20%.", "evidenceIds": [101] },
+        { "text": "Implemented deterministic tests for a simulated robot control service.", "evidenceIds": [102] }
+      ]
+    },
+    {
+      "heading": "Technical focus",
+      "items": [
+        { "text": "TypeScript telemetry and deterministic testing for simulated robotics systems.", "evidenceIds": [101, 102] }
+      ]
+    }
+  ]
+}

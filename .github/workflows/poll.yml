@@ -1,0 +1,47 @@
+name: Poll internship sources
+
+on:
+  schedule:
+    - cron: "2/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internship-radar-poller
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      OWNER_USER_ID: ${{ secrets.OWNER_USER_ID }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ALERT_RECIPIENT: ${{ secrets.ALERT_RECIPIENT }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RADAR_EMAIL_FROM: ${{ secrets.RADAR_EMAIL_FROM }}
+      RADAR_DASHBOARD_URL: ${{ secrets.RADAR_DASHBOARD_URL }}
+      RADAR_PARTITION_COUNT: "8"
+      RADAR_PER_DOMAIN_CONCURRENCY: "2"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Poll due sources
+        run: pnpm --filter @internship-radar/poller poll
+      - name: Drain durable email outbox
+        if: always()
+        run: pnpm --filter @internship-radar/email send

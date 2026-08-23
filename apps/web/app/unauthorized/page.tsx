@@ -1,0 +1,1 @@
+export default function UnauthorizedPage() { return <main className="auth-page"><section className="auth-card"><p className="eyebrow">ACCESS DENIED</p><h1>Owner only</h1><p>This authenticated account is not authorized for this private workspace.</p><a className="primary-action" href="/login">Return to sign in</a></section></main>; }

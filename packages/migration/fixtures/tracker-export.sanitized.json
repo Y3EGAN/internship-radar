@@ -1,0 +1,59 @@
+{
+  "exportedAt": "2026-08-22T12:00:00Z",
+  "profileAndCriteria": {
+    "targetingCriteria": { "roleFamilies": ["robotics"] },
+    "contactPreferences": {},
+    "alertSettings": {},
+    "nonContactPreferences": {}
+  },
+  "profileEvidence": [
+    {
+      "evidenceType": "project",
+      "label": "Sanitized verified project",
+      "fact": "Built a sanitized test fixture",
+      "sourceReference": "fixture:verified-project",
+      "verifiedAt": "2026-08-01T12:00:00Z"
+    }
+  ],
+  "searchSources": [
+    {
+      "company": "Example Robotics",
+      "tier": "A",
+      "priority": 90,
+      "active": true,
+      "careerUrl": "https://example.invalid/careers",
+      "ats": "greenhouse",
+      "boardIdentifier": "example",
+      "endpointUrl": "https://boards-api.greenhouse.io/v1/boards/example/jobs",
+      "intervalSeconds": 300,
+      "verifiedAt": "2026-08-20T12:00:00Z"
+    }
+  ],
+  "jobs": [
+    {
+      "title": "Robotics Intern",
+      "company": "Example Robotics",
+      "url": "https://example.invalid/jobs/1?utm_source=fixture",
+      "location": "Toronto",
+      "status": "Applied",
+      "score": 85,
+      "discoveredAt": "2026-08-20T12:00:00Z",
+      "submittedAt": "2026-08-21T12:00:00Z",
+      "manualSubmissionConfirmedAt": "2026-08-21T12:00:00Z",
+      "userTracking": { "note": "sanitized" }
+    }
+  ],
+  "runLog": [
+    {
+      "startedAt": "2026-08-20T12:00:00Z",
+      "finishedAt": "2026-08-20T12:00:10Z",
+      "attemptedCount": 1,
+      "succeededCount": 1,
+      "failedCount": 0,
+      "discoveredCount": 1,
+      "changedCount": 0,
+      "outcome": "succeeded",
+      "partitionKey": "0"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "internship-radar",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22 <23",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "build": "turbo run build && node scripts/verify-browser-bundle.mjs",
+    "check": "pnpm privacy:scan && pnpm skills:validate && pnpm schema:validate && pnpm sources:validate && pnpm workflow:validate && pnpm lint && pnpm typecheck && pnpm test",
+    "db:advisors": "supabase db advisors --local --type security --level info --fail-on warn && supabase db advisors --local --type performance --level info --fail-on warn",
+    "db:reset": "supabase db reset --local",
+    "db:test": "supabase test db --local supabase/tests/database",
+    "db:types:check": "node scripts/verify-database-types.mjs",
+    "db:verify": "pnpm db:reset && pnpm db:test && pnpm db:types:check && pnpm db:advisors",
+    "deployment:validate": "node scripts/validate-deployment-readiness.mjs",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "migration:plan": "pnpm --filter @internship-radar/migration plan",
+    "privacy:scan": "node scripts/privacy-scan.mjs",
+    "schema:validate": "node scripts/validate-schema-contract.mjs",
+    "sources:validate": "node scripts/validate-source-registry.mjs",
+    "sources:verify-live": "node scripts/validate-source-registry.mjs --live",
+    "skills:validate": "node scripts/validate-project-skills.mjs",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "workflow:validate": "node scripts/validate-poller-workflow.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "@typescript-eslint/eslint-plugin": "8.67.0",
+    "@typescript-eslint/parser": "8.67.0",
+    "eslint": "9.39.5",
+    "supabase": "2.115.0",
+    "turbo": "2.10.11",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

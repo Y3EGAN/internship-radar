@@ -1,0 +1,2 @@
+-- Sanitized local-only seed. Authentication identities are created by tests or local sign-in.
+-- Runtime employer endpoints are imported separately after live verification.
