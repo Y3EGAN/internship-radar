@@ -106,7 +106,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         <label htmlFor="state">Status<select id="state" name="state" defaultValue={state ?? ""}><option value="">All statuses</option><option value="discovered">Discovered</option><option value="needs_verification">Needs verification</option><option value="verified">Verified</option><option value="shortlisted">Shortlisted</option><option value="dismissed">Dismissed</option><option value="closed">Closed</option></select></label>
         <label htmlFor="location">Location contains<input id="location" name="location" type="search" defaultValue={location ?? ""} placeholder="Toronto, California…" /></label>
       </div>
-      <div className="filter-actions"><button type="submit">Apply filters</button>{activeFilterCount > 0 ? <Link className="secondary-action" href="/jobs">Clear filters</Link> : null}</div>
+      <div className="filter-actions"><button type="submit">Apply filters</button>{activeFilterCount > 0 ? <a className="secondary-action" href="/jobs">Clear filters</a> : null}</div>
     </form>
     {rows.length === 0 ? <p className="empty">No jobs match these filters. Try clearing one or more filters.</p> : <>
       <div className="table-scroll" tabIndex={0} role="region" aria-label="Filtered jobs table">
