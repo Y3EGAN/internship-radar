@@ -18,6 +18,18 @@ This runbook separates repository-safe preparation from user-authorized provider
 5. Configure Resend Free with one verified recipient/domain and one webhook. Never log a full API key or webhook secret.
 6. Add the poller secrets to GitHub Actions, keep the repository public, and manually dispatch once before relying on the schedule.
 
+### Resend webhook secret recovery
+
+Use this procedure when Resend records delivery but Vercel returns `400 Invalid signature` and `resend_webhook_events` remains unchanged:
+
+1. In Resend, open the enabled production webhook and copy its current signing secret. Do not expose or log it.
+2. In the Vercel project, replace `RESEND_WEBHOOK_SECRET` for Production with that exact value. Update Preview only if webhook tests intentionally target Preview.
+3. Redeploy Production so the function receives the updated environment value.
+4. In Resend, replay one already-delivered event to the production webhook. Do not send another owner alert just to test the webhook.
+5. Confirm the request succeeds, the matching `email_deliveries` row becomes `delivered`, and one `email.delivered` row exists in `resend_webhook_events`. A duplicate replay must remain idempotent.
+
+An invalid signature must continue to return an error and make no database writes. Never weaken signature verification to make the replay pass.
+
 ## 3. Private tracker and résumé migration
 
 1. Export the four Sheet tabs to one private JSON snapshot following `docs/tracker-export-format.md`. Keep the export under the ignored `tmp/` path.
