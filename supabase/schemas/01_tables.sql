@@ -137,6 +137,7 @@ create table public.jobs (
   last_seen_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  saved_at timestamptz,
   constraint jobs_title_nonempty check (btrim(title) <> '' and btrim(normalized_title) <> ''),
   constraint jobs_canonical_https check (canonical_url is null or canonical_url ~ '^https://'),
   constraint jobs_score_range check (preliminary_score between 0 and 100),

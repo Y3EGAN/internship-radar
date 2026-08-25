@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireOwner } from "../../../lib/auth";
 import { decodeJobCursor, encodeJobCursor } from "../../../lib/job-cursor";
+import { formatCompanyName, formatDate } from "../../../lib/job-presentation";
+import { SaveJobButton } from "../_components/save-job-button";
 
 const PAGE_SIZE = 50;
 const JOB_STATES = ["discovered", "needs_verification", "verified", "shortlisted", "dismissed", "closed"] as const;
@@ -30,13 +32,6 @@ const termQueries: Record<(typeof TERMS)[number], string> = {
   "summer-2027": "title.ilike.%summer%2027%,description.ilike.%summer%2027%",
 };
 
-function formatPostedDate(value: string | null): string {
-  if (value === null) return "Not listed";
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "Not listed";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "America/Toronto" }).format(date);
-}
-
 export default async function JobsPage({ searchParams }: { searchParams: Promise<JobSearch> }) {
   const { client } = await requireOwner();
   const filters = await searchParams;
@@ -51,7 +46,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   let query = client
     .from("jobs")
-    .select("id,title,location_text,state,preliminary_score,posted_at,discovered_at")
+    .select("id,title,location_text,state,preliminary_score,posted_at,discovered_at,saved_at,companies(name)")
     .order("discovered_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(PAGE_SIZE + 1);
@@ -110,7 +105,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     </form>
     {rows.length === 0 ? <p className="empty">No jobs match these filters. Try clearing one or more filters.</p> : <>
       <div className="table-scroll" tabIndex={0} role="region" aria-label="Filtered jobs table">
-        <table className="data-table"><thead><tr><th>Role</th><th>Location</th><th>Posted</th><th>Score</th><th>Status</th></tr></thead><tbody>{rows.map(job => <tr key={job.id}><td><Link href={`/jobs/${job.id}`}><strong>{job.title}</strong></Link></td><td>{job.location_text ?? "Not listed"}</td><td><time dateTime={job.posted_at ?? undefined}>{formatPostedDate(job.posted_at)}</time></td><td>{Number(job.preliminary_score)}/100</td><td><span className="badge">{job.state.replaceAll("_", " ")}</span></td></tr>)}</tbody></table>
+        <table className="data-table"><thead><tr><th>Role</th><th>Company</th><th>Location</th><th>Posted</th><th>Score</th><th>Status</th><th><span className="sr-only">Save for later</span></th></tr></thead><tbody>{rows.map(job => <tr key={job.id}><td><Link href={`/jobs/${job.id}`}><strong>{job.title}</strong></Link></td><td>{formatCompanyName(job.companies)}</td><td>{job.location_text ?? "Not listed"}</td><td><time dateTime={job.posted_at ?? undefined}>{formatDate(job.posted_at)}</time></td><td>{Number(job.preliminary_score)}/100</td><td><span className="badge">{job.state.replaceAll("_", " ")}</span></td><td><SaveJobButton jobId={Number(job.id)} title={job.title} savedAt={job.saved_at ?? null} /></td></tr>)}</tbody></table>
       </div>
       {hasNext && nextCursor ? <nav className="pagination" aria-label="Jobs pagination"><Link className="primary-action" href={`/jobs?${nextQuery.toString()}`}>Next page</Link></nav> : null}
     </>}

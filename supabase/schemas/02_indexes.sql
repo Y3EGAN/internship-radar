@@ -7,6 +7,9 @@ create index jobs_owner_state_cursor_idx
 create index jobs_company_id_idx on public.jobs (company_id);
 create index jobs_fingerprint_idx
   on public.jobs (owner_id, company_id, normalized_title, normalized_location);
+create index jobs_owner_saved_idx
+  on public.jobs (owner_id, saved_at desc, id desc)
+  where saved_at is not null;
 
 create index applications_owner_state_cursor_idx
   on public.applications (owner_id, state, updated_at desc, id desc);

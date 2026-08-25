@@ -2,7 +2,7 @@ import Link from "next/link";
 import { RealtimeRefresh } from "./realtime-refresh";
 
 const navigation = [
-  ["Overview", "/"], ["Jobs", "/jobs"], ["Applications", "/applications"],
+  ["Overview", "/"], ["Jobs", "/jobs"], ["Saved", "/saved"], ["Applications", "/applications"],
   ["Sources", "/sources"], ["Runs", "/runs"], ["Profile", "/profile"], ["Devices", "/settings/devices"],
 ] as const;
 

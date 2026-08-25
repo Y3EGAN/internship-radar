@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(15);
+select plan(16);
 
 select is(
   (select count(*) from pg_tables where schemaname = 'public' and tablename in (
@@ -49,6 +49,7 @@ select has_index('public', 'source_endpoints', 'source_endpoints_due_idx', 'sour
 select has_index('public', 'email_outbox', 'email_outbox_due_idx', 'outbox due partial index exists');
 select has_index('public', 'job_sources', 'job_sources_source_endpoint_id_external_job_id_key', 'source external ID uniqueness exists');
 select has_index('public', 'jobs', 'jobs_owner_canonical_url_key', 'canonical URL partial uniqueness exists');
+select has_index('public', 'jobs', 'jobs_owner_saved_idx', 'saved jobs partial index exists');
 
 select is(
   (select count(*) from pg_policies where schemaname = 'storage'

@@ -551,6 +551,7 @@ export type Database = {
           posted_at: string | null
           preliminary_score: number
           role_family: string | null
+          saved_at: string | null
           state: Database["public"]["Enums"]["job_state"]
           title: string
           updated_at: string
@@ -571,6 +572,7 @@ export type Database = {
           posted_at?: string | null
           preliminary_score?: number
           role_family?: string | null
+          saved_at?: string | null
           state?: Database["public"]["Enums"]["job_state"]
           title: string
           updated_at?: string
@@ -591,6 +593,7 @@ export type Database = {
           posted_at?: string | null
           preliminary_score?: number
           role_family?: string | null
+          saved_at?: string | null
           state?: Database["public"]["Enums"]["job_state"]
           title?: string
           updated_at?: string

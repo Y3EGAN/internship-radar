@@ -25,6 +25,7 @@ for (const table of requiredTables) {
 
 const invariants = [
   [indexes, "jobs_owner_state_cursor_idx"],
+  [indexes, "jobs_owner_saved_idx"],
   [indexes, "applications_owner_state_cursor_idx"],
   [indexes, "source_endpoints_due_idx"],
   [indexes, "email_outbox_due_idx"],
