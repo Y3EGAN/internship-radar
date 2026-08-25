@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --passWithNoTests && node --test ../../scripts/preparation-bridge.test.mjs",
     "typecheck": "tsc --noEmit",
     "radar": "tsx src/index.ts"
   },
