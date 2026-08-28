@@ -32,15 +32,30 @@ export interface SaveJobInput {
   readonly saved: boolean;
 }
 
+export interface AppliedJobInput {
+  readonly jobId: number;
+  readonly applied: boolean;
+}
+
 /**
  * Server actions are public endpoints, so the toggle payload is validated as untrusted input
  * before it reaches the database.
  */
 export function parseSaveJobInput(jobId: unknown, saved: unknown): SaveJobInput | null {
-  if (typeof jobId !== "string" || typeof saved !== "string") return null;
+  const input = parseJobToggleInput(jobId, saved);
+  return input === null ? null : { jobId: input.jobId, saved: input.enabled };
+}
+
+export function parseAppliedJobInput(jobId: unknown, applied: unknown): AppliedJobInput | null {
+  const input = parseJobToggleInput(jobId, applied);
+  return input === null ? null : { jobId: input.jobId, applied: input.enabled };
+}
+
+function parseJobToggleInput(jobId: unknown, enabled: unknown): { jobId: number; enabled: boolean } | null {
+  if (typeof jobId !== "string" || typeof enabled !== "string") return null;
   if (!/^[1-9][0-9]{0,15}$/.test(jobId)) return null;
-  if (saved !== "true" && saved !== "false") return null;
+  if (enabled !== "true" && enabled !== "false") return null;
   const parsed = Number(jobId);
   if (!Number.isSafeInteger(parsed)) return null;
-  return { jobId: parsed, saved: saved === "true" };
+  return { jobId: parsed, enabled: enabled === "true" };
 }

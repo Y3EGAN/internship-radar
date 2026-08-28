@@ -10,6 +10,9 @@ create index jobs_fingerprint_idx
 create index jobs_owner_saved_idx
   on public.jobs (owner_id, saved_at desc, id desc)
   where saved_at is not null;
+create index jobs_owner_applied_idx
+  on public.jobs (owner_id, applied_at desc, id desc)
+  where applied_at is not null;
 
 create index applications_owner_state_cursor_idx
   on public.applications (owner_id, state, updated_at desc, id desc);

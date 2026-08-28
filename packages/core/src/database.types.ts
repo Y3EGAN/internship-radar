@@ -536,6 +536,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          applied_at: string | null
           canonical_url: string | null
           closes_at: string | null
           company_id: number | null
@@ -557,6 +558,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          applied_at?: string | null
           canonical_url?: string | null
           closes_at?: string | null
           company_id?: number | null
@@ -578,6 +580,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          applied_at?: string | null
           canonical_url?: string | null
           closes_at?: string | null
           company_id?: number | null

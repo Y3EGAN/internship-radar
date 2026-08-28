@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPANY_FALLBACK, formatCompanyName, formatDate, parseSaveJobInput, resolveCompanyName } from "./job-presentation";
+import { COMPANY_FALLBACK, formatCompanyName, formatDate, parseAppliedJobInput, parseSaveJobInput, resolveCompanyName } from "./job-presentation";
 
 describe("company name resolution", () => {
   it("reads both PostgREST embedding shapes", () => {
@@ -55,5 +55,18 @@ describe("save toggle input", () => {
     expect(parseSaveJobInput("42", null)).toBeNull();
     expect(parseSaveJobInput(42, "true")).toBeNull();
     expect(parseSaveJobInput(new File([], "x"), "true")).toBeNull();
+  });
+});
+
+describe("applied toggle input", () => {
+  it("accepts an explicit applied state", () => {
+    expect(parseAppliedJobInput("42", "true")).toEqual({ jobId: 42, applied: true });
+    expect(parseAppliedJobInput("42", "false")).toEqual({ jobId: 42, applied: false });
+  });
+
+  it("rejects invalid identifiers and states", () => {
+    expect(parseAppliedJobInput("0", "true")).toBeNull();
+    expect(parseAppliedJobInput("42", "yes")).toBeNull();
+    expect(parseAppliedJobInput(null, "true")).toBeNull();
   });
 });

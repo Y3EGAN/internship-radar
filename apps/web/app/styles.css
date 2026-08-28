@@ -44,6 +44,10 @@ a { color:inherit; }
 .save-button { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:8px 12px; border:1px solid var(--line); background:var(--control-bg); color:var(--muted); font:700 12px var(--font-mono),monospace; white-space:nowrap; cursor:pointer; }
 .save-button:hover { border-color:var(--primary); color:var(--primary); background:var(--hover); }
 .save-button.is-saved { border-color:var(--accent); background:var(--warning-bg); color:var(--warning-ink); }
+.applied-button { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--line); background:var(--control-bg); color:var(--muted); font:700 12px var(--font-mono),monospace; white-space:nowrap; cursor:pointer; }
+.applied-button:hover { border-color:var(--primary); color:var(--primary); background:var(--hover); }
+.applied-button.is-applied { border-color:var(--primary); background:var(--hover); color:var(--primary); }
+.check-box { width:18px; height:18px; display:inline-grid; place-items:center; flex:0 0 auto; border:2px solid currentColor; font-size:14px; line-height:1; }
 .pagination { display:flex; justify-content:flex-end; padding-top:16px; }
 .filter-bar { display:grid; gap:16px; margin-top:18px; padding:18px; border:1px solid var(--line); background:var(--card); }
 .filter-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; }
