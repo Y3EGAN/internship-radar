@@ -10,6 +10,7 @@
 node_modules/
 .pnpm-store/
 .turbo/
+.worktrees/
 .next/
 dist/
 coverage/
