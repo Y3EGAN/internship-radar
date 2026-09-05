@@ -43,5 +43,10 @@
     "tsx": "4.23.12",
     "typescript": "5.9.3",
     "vitest": "4.1.11"
+  },
+  "pnpm": {
+    "overrides": {
+      "fast-uri": "3.1.6"
+    }
   }
 }
