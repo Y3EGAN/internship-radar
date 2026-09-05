@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireOwner } from "../../../lib/auth";
-import { formatCompanyName, formatDate } from "../../../lib/job-presentation";
+import { formatDate, formatEmployerName } from "../../../lib/job-presentation";
 import { SaveJobButton } from "../_components/save-job-button";
 import { AppliedJobButton } from "../_components/applied-job-button";
 
@@ -10,7 +10,7 @@ export default async function SavedJobsPage() {
   const { client } = await requireOwner();
   const { data } = await client
     .from("jobs")
-    .select("id,title,location_text,state,preliminary_score,posted_at,saved_at,applied_at,companies(name)")
+    .select("id,title,employer_name,location_text,state,preliminary_score,posted_at,saved_at,applied_at,companies(name)")
     .not("saved_at", "is", null)
     .order("saved_at", { ascending: false })
     .order("id", { ascending: false })
@@ -33,7 +33,7 @@ export default async function SavedJobsPage() {
           <thead><tr><th>Role</th><th>Company</th><th>Location</th><th>Saved</th><th>Score</th><th>Status</th><th>Reference</th><th><span className="sr-only">Remove from saved</span></th></tr></thead>
           <tbody>{rows.map(job => <tr key={job.id}>
             <td><Link href={`/jobs/${job.id}`}><strong>{job.title}</strong></Link></td>
-            <td>{formatCompanyName(job.companies)}</td>
+            <td>{formatEmployerName(job.employer_name, job.companies)}</td>
             <td>{job.location_text ?? "Not listed"}</td>
             <td><time dateTime={job.saved_at ?? undefined}>{formatDate(job.saved_at)}</time></td>
             <td>{Number(job.preliminary_score)}/100</td>

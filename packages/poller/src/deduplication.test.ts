@@ -4,7 +4,7 @@ import { greenhouseAdapter } from "./adapters";
 import { deduplicatePostings } from "./deduplication";
 
 describe("deduplication", () => {
-  const original = greenhouseAdapter.parse(greenhousePayload, fixtureSources.greenhouse)[0]!;
+  const original = greenhouseAdapter.parse(greenhousePayload, fixtureSources.greenhouse).postings[0]!;
 
   it("deduplicates stable ATS IDs", () => {
     const result = deduplicatePostings([original, original]);
@@ -14,7 +14,7 @@ describe("deduplication", () => {
   it("flags changed content for the same external posting", () => {
     const changedPayload = structuredClone(greenhousePayload);
     changedPayload.jobs[0]!.content = "<p>Build and deploy changed robot controls.</p>";
-    const changed = greenhouseAdapter.parse(changedPayload, fixtureSources.greenhouse)[0]!;
+    const changed = greenhouseAdapter.parse(changedPayload, fixtureSources.greenhouse).postings[0]!;
     const result = deduplicatePostings([original, changed]);
     expect(changed.contentHash).not.toBe(original.contentHash);
     expect(result.warnings).toContainEqual(expect.objectContaining({ kind: "external_id_conflict" }));

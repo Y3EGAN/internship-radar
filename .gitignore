@@ -24,6 +24,7 @@ tmp/
 browser-profiles/
 playwright-report/
 .playwright-cli/
+.firecrawl/
 test-results/
 *.trace.zip
 *.har
@@ -44,3 +45,4 @@ test-results/
 Thumbs.db
 .idea/
 .vscode/
+.vercel

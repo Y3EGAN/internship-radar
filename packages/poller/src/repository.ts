@@ -74,6 +74,7 @@ export async function persistPosting(
     p_owner_id: source.ownerId,
     p_source_endpoint_id: source.id,
     p_external_job_id: posting.externalJobId,
+    p_employer_name: posting.companyName,
     p_title: posting.title,
     p_normalized_title: posting.normalizedTitle,
     p_canonical_url: posting.canonicalUrl,
@@ -100,6 +101,18 @@ export async function persistPosting(
   const row = rows[0];
   if (rows.length !== 1 || row === undefined) throw new PersistenceError("upsert_discovered_job");
   return { jobId: row.job_id, sourceNew: row.source_new, contentChanged: row.content_changed };
+}
+
+export function reconcileSecondarySource(
+  client: PollerRpcClient,
+  source: SourceDefinition,
+  seenExternalJobIds: readonly string[],
+): Promise<number> {
+  return callRpc(client, "reconcile_secondary_source", {
+    p_owner_id: source.ownerId,
+    p_source_endpoint_id: source.id,
+    p_seen_external_job_ids: seenExternalJobIds,
+  });
 }
 
 export function recordSourceResult(

@@ -5,34 +5,116 @@ const ownerId = "40000000-0000-4000-8000-000000000004";
 export const fixtureSources = {
   greenhouse: {
     id: 1, ownerId, ats: "greenhouse", boardIdentifier: "example-robotics",
+    renderMode: "http",
     endpointUrl: "https://boards-api.greenhouse.io/v1/boards/example-robotics/jobs", companyName: "Example Robotics",
   },
   lever: {
     id: 2, ownerId, ats: "lever", boardIdentifier: "example-autonomy",
+    renderMode: "http",
     endpointUrl: "https://api.lever.co/v0/postings/example-autonomy", companyName: "Example Autonomy",
   },
   ashby: {
     id: 3, ownerId, ats: "ashby", boardIdentifier: "example-ai",
+    renderMode: "http",
     endpointUrl: "https://api.ashbyhq.com/posting-api/job-board/example-ai", companyName: "Example AI",
   },
   workday: {
     id: 4, ownerId, ats: "workday", boardIdentifier: "ExampleCareers",
+    renderMode: "http",
     endpointUrl: "https://example.wd5.myworkdayjobs.com/wday/cxs/example/ExampleCareers/jobs", companyName: "Example Dynamics",
   },
   smartrecruiters: {
     id: 5, ownerId, ats: "smartrecruiters", boardIdentifier: "ExampleLabs",
+    renderMode: "http",
     endpointUrl: "https://api.smartrecruiters.com/v1/companies/ExampleLabs/postings", companyName: "Example Labs",
   },
   hosted_json: {
     id: 6, ownerId, ats: "hosted_json", boardIdentifier: "example-company-feed",
+    renderMode: "http",
     endpointUrl: "https://careers.example.invalid/jobs.json", companyName: "Example Machines",
   },
   simplify: {
     id: 7, ownerId, ats: "simplify", boardIdentifier: "summer-2027",
-    endpointUrl: "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json",
+    renderMode: "http",
+    endpointUrl: "https://raw.example.invalid/simplify/listings.json",
     companyName: "Community Feed",
   },
+  canadianSecondary: {
+    id: 8, ownerId, ats: "secondary", boardIdentifier: "canadian-tech-internships-2027",
+    renderMode: "http",
+    endpointUrl: "https://raw.example.invalid/canadian/README.md", companyName: "Canadian Community Feed",
+  },
+  vanshSecondary: {
+    id: 9, ownerId, ats: "secondary", boardIdentifier: "vansh-summer-2027",
+    renderMode: "http",
+    endpointUrl: "https://raw.example.invalid/vansh/README.md", companyName: "Vansh Community Feed",
+  },
+  speedyUsaSecondary: {
+    id: 10, ownerId, ats: "secondary", boardIdentifier: "speedyapply-2027-intern-usa",
+    renderMode: "http",
+    endpointUrl: "https://raw.example.invalid/speedy/README.md", companyName: "Speedy Community Feed",
+  },
+  speedyInternationalSecondary: {
+    id: 11, ownerId, ats: "secondary", boardIdentifier: "speedyapply-2027-intern-intl",
+    renderMode: "http",
+    endpointUrl: "https://raw.example.invalid/speedy/INTERN_INTL.md", companyName: "Speedy Community Feed",
+  },
+  zapplySecondary: {
+    id: 12, ownerId, ats: "secondary", boardIdentifier: "zapply-canada-2027",
+    renderMode: "http",
+    endpointUrl: "https://raw.example.invalid/zapply/README.md", companyName: "Zapply Community Feed",
+  },
+  careerPage: {
+    id: 13, ownerId, ats: "career_page", boardIdentifier: "example-careers",
+    renderMode: "browser",
+    endpointUrl: "https://careers.example.invalid/jobs", companyName: "Example Careers",
+  },
 } satisfies Readonly<Record<string, SourceDefinition>>;
+
+export const careerPageJsonLdPayload = `
+<html><head>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "JobPosting",
+      "title": "  Software Engineering Intern  ",
+      "url": "https://jobs.example.invalid/roles/eng-101?utm_source=fixture",
+      "identifier": { "@type": "PropertyValue", "value": "ENG-101" },
+      "description": "<p>Build reliable systems.</p>",
+      "datePosted": "2026-09-01",
+      "validThrough": "2026-10-01T23:59:59-04:00",
+      "employmentType": "INTERN",
+      "jobLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Toronto",
+          "addressRegion": "ON",
+          "addressCountry": "CA"
+        }
+      }
+    }
+  </script>
+</head><body></body></html>`;
+
+export const careerPageGraphPayload = `
+<html><head>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        { "@type": ["Thing", "JobPosting"], "title": "Data Science Co-op", "url": "https://jobs.example.invalid/roles/data-201" },
+        { "@type": "JobPosting", "title": "Robotics Internship", "url": "https://jobs.example.invalid/roles/robotics-202" }
+      ]
+    }
+  </script>
+</head><body></body></html>`;
+
+export const careerPageAnchorPayload = `
+<html><body>
+  <a href="/roles/student-301?utm_source=careers">Student Placement — Platform</a>
+  <a href="https://jobs.example.invalid/roles/full-time">Senior Platform Engineer</a>
+</body></html>`;
 
 export const greenhousePayload = {
   jobs: [{
@@ -119,3 +201,30 @@ export const simplifyPayload = [{
   active: true,
   url: "https://jobs.example.invalid/community-701?utm_source=github",
 }];
+
+export const canadianSecondaryPayload = `
+| Company | Role | Location | Apply | Date Posted |
+|---|---|---|---|---|
+| Example Robotics | Controls Software Intern | Toronto, ON | [![Apply](https://images.example.invalid/apply.png)](https://jobs.example.invalid/robotics/801?utm_source=community) | Aug 27, 2026 |
+| ↳ | Perception Co-op | Remote, Canada | [Apply](https://jobs.example.invalid/robotics/802) | Aug 26, 2026 |
+| Example Closed | Systems Intern | Vancouver, BC | Closed🔒 | Aug 20, 2026 |
+`;
+
+export const vanshSecondaryPayload = `
+| Company | Role | Location | Application/Link | Date Posted |
+|---|---|---|---|---|
+| Example Machines | Autonomy Intern | Austin, TX | <a href="https://careers.example.invalid/jobs/901?utm_source=github"><img src="https://images.example.invalid/apply.png"></a> | Aug 21 |
+| ↳ | Platform Intern | Remote - United States | <a href="https://careers.example.invalid/jobs/902"><img src="https://images.example.invalid/apply.png"></a> | Aug 20 |
+`;
+
+export const speedySecondaryPayload = `
+| Company | Position | Location | Posting | Age |
+|---|---|---|---|---|
+| <a href="https://company.example.invalid"><strong>Example Computing</strong></a> | GPU Software Intern | Seattle, WA | <a href="https://apply.example.invalid/jobs/1001"><img src="https://images.example.invalid/apply.png"></a> | 2d |
+`;
+
+export const zapplySecondaryPayload = `
+| Company | Role | Location | Posted | Visa | **Apply** |
+|---|---|---|---|---|---|
+| **Example Dynamics** | Embedded Software Co-op | Montreal, QC, CAN | 13m | | [<img src="images/apply.png">](https://work.example.invalid/jobs/1101?ref=community) |
+`;

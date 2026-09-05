@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPANY_FALLBACK, formatCompanyName, formatDate, parseAppliedJobInput, parseSaveJobInput, resolveCompanyName } from "./job-presentation";
+import { COMPANY_FALLBACK, formatCompanyName, formatDate, formatEmployerName, parseAppliedJobInput, parseSaveJobInput, resolveCompanyName } from "./job-presentation";
 
 describe("company name resolution", () => {
   it("reads both PostgREST embedding shapes", () => {
@@ -18,6 +18,11 @@ describe("company name resolution", () => {
 
   it("trims stored whitespace", () => {
     expect(resolveCompanyName({ name: "  Example Robotics  " })).toBe("Example Robotics");
+  });
+
+  it("prefers the per-posting employer used by aggregator feeds", () => {
+    expect(formatEmployerName("  Per-row Employer  ", { name: "Repository Owner" })).toBe("Per-row Employer");
+    expect(formatEmployerName("", { name: "Repository Owner" })).toBe("Repository Owner");
   });
 });
 

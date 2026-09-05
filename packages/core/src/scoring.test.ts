@@ -5,6 +5,7 @@ import { scorePosting } from "./scoring";
 const posting = discoveredPostingSchema.parse({
   ats: "greenhouse",
   externalJobId: "fixture-1",
+  companyName: "Fixture Robotics",
   title: "Robotics Software Internship",
   normalizedTitle: "robotics software internship",
   canonicalUrl: "https://jobs.example.invalid/fixture-1",

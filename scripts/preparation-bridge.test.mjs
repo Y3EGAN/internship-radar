@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { claimNext, completePackage, recordNeedsInput } from "./preparation-bridge.mjs";
+import { buildRunnerInvocation } from "./run-preparation-bridge.mjs";
 
 const applicationId = "a1000000-0000-4000-8000-000000000001";
 const ownerId = "b1000000-0000-4000-8000-000000000001";
@@ -151,4 +152,21 @@ test("rejects material claims without evidence identifiers before upload", async
     }),
     /evidence identifiers/,
   );
+});
+
+test("the Vercel runner injects the narrow development environment without putting secrets in arguments", () => {
+  const invocation = buildRunnerInvocation(
+    {
+      baseResumePath: "C:\\private\\base.pdf",
+      preparationRoot: "C:\\private\\preparation",
+      vercelCwd: "C:\\private\\vercel-link",
+      baseUrl: "https://radar.example.invalid",
+    },
+    "next",
+  );
+  assert.equal(invocation.arguments.includes("development"), true);
+  assert.equal(invocation.arguments.includes("production"), false);
+  assert.equal(invocation.arguments.includes("CODEX_PREPARATION_TOKEN"), false);
+  assert.equal(invocation.arguments.some((value) => /fixture-token|Bearer /.test(value)), false);
+  assert.equal(invocation.environment.RADAR_BASE_RESUME, "C:\\private\\base.pdf");
 });

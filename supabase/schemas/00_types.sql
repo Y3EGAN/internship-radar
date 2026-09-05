@@ -31,6 +31,7 @@ create type public.application_state as enum (
 );
 
 create type public.source_state as enum ('healthy', 'degraded', 'failing', 'disabled');
+create type public.source_render_mode as enum ('http', 'browser');
 create type public.answer_sensitivity as enum ('safe_reuse', 'contextual', 'never_infer');
 create type public.email_outbox_state as enum (
   'pending',
@@ -50,7 +51,8 @@ create type public.ats_type as enum (
   'smartrecruiters',
   'hosted_json',
   'simplify',
-  'secondary'
+  'secondary',
+  'career_page'
 );
 create type public.package_state as enum ('draft', 'needs_input', 'rendering', 'verified', 'superseded');
 create type public.delivery_state as enum (

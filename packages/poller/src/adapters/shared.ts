@@ -3,6 +3,7 @@ import {
   discoveredPostingSchema,
   normalizeLocation,
   normalizeTitle,
+  normalizeWhitespace,
   stableContentHash,
   stripHtml,
   type AtsType,
@@ -37,6 +38,7 @@ export function optionalDate(value: unknown): string | undefined {
 export interface PostingInput {
   readonly ats: AtsType;
   readonly externalJobId: string;
+  readonly companyName: string;
   readonly title: string;
   readonly canonicalUrl: string;
   readonly sourceUrl?: string | undefined;
@@ -57,6 +59,7 @@ export function posting(input: PostingInput): DiscoveredPosting {
   const normalized = {
     ats: input.ats,
     externalJobId: input.externalJobId,
+    companyName: normalizeWhitespace(input.companyName),
     title: input.title.trim(),
     normalizedTitle: normalizeTitle(input.title),
     canonicalUrl,

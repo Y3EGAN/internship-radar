@@ -1,6 +1,6 @@
 import type { AtsType, SourceDefinition } from "@internship-radar/core";
 import { deduplicatePostings, type DeduplicationWarning } from "./deduplication";
-import { requestJson, sanitizeSourceIssue, SourceRequestError, type RequestJsonOptions } from "./http";
+import { requestSource, sanitizeSourceIssue, SourceRequestError, type RequestJsonOptions } from "./http";
 import type { AdapterRunResult, SourceAdapter } from "./types";
 
 export interface DiscoveryResult {
@@ -19,20 +19,43 @@ export async function runSource(
   const startedAt = clock();
   let attempts = 0;
   try {
-    const response = await requestJson(adapter.buildRequest(source), options);
+    const response = await requestSource(adapter.buildRequest(source), options);
     attempts = response.attempts;
-    let postings;
+    let parsed;
     try {
-      postings = adapter.parse(response.payload, source);
+      parsed = adapter.parse(response.payload, source);
     } catch {
       throw new SourceRequestError("malformed_payload", "source payload did not match the adapter contract", false);
     }
+    if (parsed.postings.length === 0) {
+      const fallbackRequest = adapter.buildFallbackRequest?.(source, parsed);
+      if (fallbackRequest !== undefined) {
+        const fallbackResponse = await requestSource(fallbackRequest, options);
+        attempts += fallbackResponse.attempts;
+        try {
+          const fallbackParsed = adapter.parse(fallbackResponse.payload, source);
+          parsed = {
+            postings: fallbackParsed.postings,
+            rejectedRowCount: parsed.rejectedRowCount + fallbackParsed.rejectedRowCount,
+          };
+        } catch {
+          throw new SourceRequestError("malformed_payload", "source payload did not match the adapter contract", false);
+        }
+      }
+    }
     return {
       source,
-      status: postings.length === 0 ? "empty" : "success",
-      postings,
+      status: parsed.rejectedRowCount > 0 ? "partial" : parsed.postings.length === 0 ? "empty" : "success",
+      postings: parsed.postings,
       attempts,
       durationMs: Math.max(0, clock() - startedAt),
+      ...(parsed.rejectedRowCount === 0 ? {} : {
+        issue: {
+          kind: "partial_payload" as const,
+          retryable: false,
+          message: `source payload contained ${parsed.rejectedRowCount} rejected row${parsed.rejectedRowCount === 1 ? "" : "s"}`,
+        },
+      }),
     };
   } catch (error) {
     return {

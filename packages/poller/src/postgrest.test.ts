@@ -9,14 +9,16 @@ describe("PostgREST poller database", () => {
       ats: "greenhouse",
       board_identifier: "fixture-board",
       endpoint_url: "https://boards-api.greenhouse.io/v1/boards/fixture-board/jobs",
+      render_mode: "browser",
       companies: { name: "Fixture Board" },
     }]));
     const database = new PostgrestPollerDatabase("https://project.example.invalid", "fixture-service-key", fetchImpl);
     const sources = await database.listDueSources("40000000-0000-4000-8000-000000000004");
 
-    expect(sources[0]).toMatchObject({ id: 17, companyName: "Fixture Board", ats: "greenhouse" });
+    expect(sources[0]).toMatchObject({ id: 17, companyName: "Fixture Board", ats: "greenhouse", renderMode: "browser" });
     const [url, init] = fetchImpl.mock.calls[0]!;
     expect(String(url)).toContain("source_endpoints?");
+    expect(String(url)).toContain("render_mode");
     expect(init.headers).toMatchObject({ apikey: "fixture-service-key", Authorization: "Bearer fixture-service-key" });
   });
 

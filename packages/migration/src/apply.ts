@@ -58,6 +58,7 @@ export async function applyMigrationPlan(plan: MigrationPlan): Promise<Result> {
     await checked(client.from("source_endpoints").upsert(plan.sources.map((source) => ({
       owner_id: ownerId, company_id: companyIds.get(source.company.toLowerCase()) ?? null,
       ats: source.ats, board_identifier: source.boardIdentifier, endpoint_url: source.endpointUrl,
+      render_mode: source.renderMode,
       interval_seconds: source.intervalSeconds, state: source.active ? "healthy" : "disabled",
       disabled_reason: source.active ? null : source.disabledReason, verified_at: source.verifiedAt ?? null,
     })), { onConflict: "owner_id,ats,board_identifier" }), "import sources");
@@ -67,7 +68,7 @@ export async function applyMigrationPlan(plan: MigrationPlan): Promise<Result> {
   for (const job of plan.jobs) {
     const companyId = job.company ? companyIds.get(job.company.toLowerCase()) ?? null : null;
     const row = {
-      owner_id: ownerId, company_id: companyId, title: job.title,
+      owner_id: ownerId, company_id: companyId, employer_name: job.company ?? "Company not listed", title: job.title,
       normalized_title: job.title.trim().toLowerCase().replace(/\s+/g, " "), canonical_url: job.url,
       description: job.description ?? null, location_text: job.location ?? null,
       normalized_location: job.location?.trim().toLowerCase().replace(/\s+/g, " ") ?? null,

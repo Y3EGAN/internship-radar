@@ -1,3 +1,4 @@
+import { createChromiumFetch } from "./browser-fetch";
 import { PostgrestPollerDatabase } from "./postgrest";
 import { runSchedulerCycle } from "./scheduler";
 
@@ -26,26 +27,34 @@ async function main(): Promise<void> {
     database.listDueSources(ownerId),
     database.loadScoringProfile(ownerId),
   ]);
-  const result = await runSchedulerCycle({
-    client: database,
-    ownerId,
-    workflowRunId,
-    sources,
-    scoringProfile,
-    alertRecipient: requiredEnvironment("ALERT_RECIPIENT"),
-    partitionCount: positiveIntegerEnvironment("RADAR_PARTITION_COUNT", 8),
-    perDomainConcurrency: positiveIntegerEnvironment("RADAR_PER_DOMAIN_CONCURRENCY", 2),
-    deadlineMs: 180_000,
-  });
-  process.stdout.write(`${JSON.stringify({
-    status: result.status,
-    attempted: result.attempted,
-    succeeded: result.succeeded,
-    failed: result.failed,
-    discovered: result.discovered,
-    changed: result.changed,
-  })}\n`);
-  if (result.status === "failed") process.exitCode = 1;
+  const chromium = sources.some((source) => source.renderMode === "browser")
+    ? await createChromiumFetch()
+    : undefined;
+  try {
+    const result = await runSchedulerCycle({
+      client: database,
+      ownerId,
+      workflowRunId,
+      sources,
+      scoringProfile,
+      ...(chromium === undefined ? {} : { renderFetchImpl: chromium.fetch }),
+      alertRecipient: requiredEnvironment("ALERT_RECIPIENT"),
+      partitionCount: positiveIntegerEnvironment("RADAR_PARTITION_COUNT", 8),
+      perDomainConcurrency: positiveIntegerEnvironment("RADAR_PER_DOMAIN_CONCURRENCY", 2),
+      deadlineMs: 180_000,
+    });
+    process.stdout.write(`${JSON.stringify({
+      status: result.status,
+      attempted: result.attempted,
+      succeeded: result.succeeded,
+      failed: result.failed,
+      discovered: result.discovered,
+      changed: result.changed,
+    })}\n`);
+    if (result.status === "failed") process.exitCode = 1;
+  } finally {
+    await chromium?.close();
+  }
 }
 
 main().catch((error: unknown) => {

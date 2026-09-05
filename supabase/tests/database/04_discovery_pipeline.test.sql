@@ -53,7 +53,7 @@ create temporary table first_upsert as
 select * from public.upsert_discovered_job(
   '40000000-0000-0000-0000-000000000004',
   (select id from public.source_endpoints where board_identifier = 'fixture-robotics'),
-  'fixture-job-1', 'Robotics Software Intern', 'robotics software intern',
+  'fixture-job-1', 'Fixture Robotics', 'Robotics Software Intern', 'robotics software intern',
   'https://robotics.example.invalid/jobs/1', 'https://boards.example.invalid/fixture-robotics/jobs/1',
   'Build safe controls for a fictional test robot.', 'Toronto, ON', 'toronto on', 'robotics',
   '2026-08-01T12:00:00Z', '2026-09-01T12:00:00Z', repeat('a', 64), 'verified',
@@ -72,7 +72,7 @@ create temporary table unchanged_upsert as
 select * from public.upsert_discovered_job(
   '40000000-0000-0000-0000-000000000004',
   (select id from public.source_endpoints where board_identifier = 'fixture-robotics'),
-  'fixture-job-1', 'Robotics Software Intern', 'robotics software intern',
+  'fixture-job-1', 'Fixture Robotics', 'Robotics Software Intern', 'robotics software intern',
   'https://robotics.example.invalid/jobs/1', 'https://boards.example.invalid/fixture-robotics/jobs/1',
   'Build safe controls for a fictional test robot.', 'Toronto, ON', 'toronto on', 'robotics',
   '2026-08-01T12:00:00Z', '2026-09-01T12:00:00Z', repeat('a', 64), 'verified',
@@ -88,7 +88,7 @@ create temporary table changed_upsert as
 select * from public.upsert_discovered_job(
   '40000000-0000-0000-0000-000000000004',
   (select id from public.source_endpoints where board_identifier = 'fixture-robotics'),
-  'fixture-job-1', 'Robotics Software Intern', 'robotics software intern',
+  'fixture-job-1', 'Fixture Robotics', 'Robotics Software Intern', 'robotics software intern',
   'https://robotics.example.invalid/jobs/1', 'https://boards.example.invalid/fixture-robotics/jobs/1',
   'Build safe controls and perception for a fictional test robot.', 'Toronto, ON', 'toronto on', 'robotics',
   '2026-08-01T12:00:00Z', '2026-09-01T12:00:00Z', repeat('b', 64), 'verified',
@@ -104,7 +104,7 @@ select throws_ok(
   $$select public.upsert_discovered_job(
     '50000000-0000-0000-0000-000000000005',
     (select id from public.source_endpoints where board_identifier = 'fixture-robotics'),
-    'foreign-job', 'Foreign Job', 'foreign job', 'https://other.example.invalid/jobs/1',
+    'foreign-job', 'Other Fixture Robotics', 'Foreign Job', 'foreign job', 'https://other.example.invalid/jobs/1',
     'https://other.example.invalid/jobs/1', null, null, null, null, null, null,
     repeat('c', 64), 'discovered', 0::smallint, 0::smallint, 0::smallint, 0::smallint, 0::smallint, '{}'::jsonb
   )$$,

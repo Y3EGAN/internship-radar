@@ -4,6 +4,7 @@ import { z } from "zod";
 const httpsUrl = z.string().url().refine((value) => value.startsWith("https://"), "must use HTTPS");
 const timestamp = z.string().datetime({ offset: true });
 const object = z.record(z.string(), z.unknown());
+const atsSchema = z.enum(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "hosted_json", "simplify", "secondary", "career_page"]);
 
 const profileSchema = z.object({
   targetingCriteria: object.default({}),
@@ -31,9 +32,10 @@ const sourceSchema = z.object({
   priority: z.number().int().min(0).max(100).default(0),
   active: z.boolean().default(true),
   careerUrl: httpsUrl,
-  ats: z.enum(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "hosted_json", "simplify", "secondary"]),
+  ats: atsSchema,
   boardIdentifier: z.string().trim().min(1),
   endpointUrl: httpsUrl,
+  renderMode: z.enum(["http", "browser"]).default("http"),
   intervalSeconds: z.number().int().min(300).max(86400),
   verifiedAt: timestamp.optional(),
   disabledReason: z.string().trim().min(1).optional(),
@@ -102,8 +104,9 @@ export const publicSourceRegistrySchema = z.object({
   method: z.string().trim().min(1),
   sources: z.array(sourceSchema.extend({ jobsAtVerification: z.number().int().positive() })),
   disabledSources: z.array(z.object({
-    company: z.string().trim().min(1), ats: z.enum(["greenhouse", "lever", "ashby", "smartrecruiters"]),
+    company: z.string().trim().min(1), ats: atsSchema,
     boardIdentifier: z.string().trim().min(1), careerUrl: httpsUrl, endpointUrl: httpsUrl,
+    renderMode: z.enum(["http", "browser"]).default("http"),
     lastCheckedAt: timestamp, disabledReason: z.string().trim().min(1),
   }).strict()).default([]),
 }).strict();
@@ -251,6 +254,7 @@ export function mergePublicSourceRegistry(input: unknown, registryInput: unknown
         company: source.company, tier: source.tier, priority: source.priority, active: source.active,
         careerUrl: source.careerUrl, ats: source.ats, boardIdentifier: source.boardIdentifier,
         endpointUrl: source.endpointUrl, intervalSeconds: source.intervalSeconds, verifiedAt: source.verifiedAt,
+        renderMode: source.renderMode,
       })),
     ],
   };

@@ -50,6 +50,7 @@ create function public.upsert_discovered_job(
   p_owner_id uuid,
   p_source_endpoint_id bigint,
   p_external_job_id text,
+  p_employer_name text,
   p_title text,
   p_normalized_title text,
   p_canonical_url text,
@@ -79,9 +80,13 @@ declare
   v_job_source_id bigint;
   v_source_new boolean := false;
   v_content_changed boolean := false;
+  v_incoming_secondary boolean := false;
+  v_existing_primary boolean := false;
 begin
-  select endpoint.company_id
-  into v_company_id
+  select
+    case when endpoint.ats in ('secondary', 'simplify') then null else endpoint.company_id end,
+    endpoint.ats in ('secondary', 'simplify')
+  into v_company_id, v_incoming_secondary
   from public.source_endpoints endpoint
   where endpoint.id = p_source_endpoint_id
     and endpoint.owner_id = p_owner_id
@@ -92,42 +97,55 @@ begin
       using errcode = '23503';
   end if;
 
+  select exists (
+    select 1
+    from public.jobs existing_job
+    join public.job_sources existing_source on existing_source.job_id = existing_job.id
+    join public.source_endpoints existing_endpoint on existing_endpoint.id = existing_source.source_endpoint_id
+    where existing_job.owner_id = p_owner_id
+      and existing_job.canonical_url = p_canonical_url
+      and existing_source.is_verified
+      and existing_endpoint.ats not in ('secondary', 'simplify')
+  ) into v_existing_primary;
+
   insert into public.jobs (
-    owner_id, company_id, title, normalized_title, canonical_url, description,
+    owner_id, company_id, employer_name, title, normalized_title, canonical_url, description,
     location_text, normalized_location, role_family, state, preliminary_score,
     posted_at, closes_at
   ) values (
-    p_owner_id, v_company_id, p_title, p_normalized_title, p_canonical_url, p_description,
+    p_owner_id, v_company_id, p_employer_name, p_title, p_normalized_title, p_canonical_url, p_description,
     p_location_text, p_normalized_location, p_role_family, p_verification_state,
     p_domain_fit + p_skill_fit + p_evidence_fit + p_location_fit + p_eligibility_freshness,
     p_posted_at, p_closes_at
   )
   on conflict (owner_id, canonical_url) where canonical_url is not null
   do update set
-    company_id = excluded.company_id,
-    title = excluded.title,
-    normalized_title = excluded.normalized_title,
-    description = excluded.description,
-    location_text = excluded.location_text,
-    normalized_location = excluded.normalized_location,
-    role_family = excluded.role_family,
+    company_id = case when v_existing_primary and v_incoming_secondary then jobs.company_id else coalesce(excluded.company_id, jobs.company_id) end,
+    employer_name = case when v_existing_primary and v_incoming_secondary then jobs.employer_name else excluded.employer_name end,
+    title = case when v_existing_primary and v_incoming_secondary then jobs.title else excluded.title end,
+    normalized_title = case when v_existing_primary and v_incoming_secondary then jobs.normalized_title else excluded.normalized_title end,
+    description = case when v_existing_primary and v_incoming_secondary then jobs.description else excluded.description end,
+    location_text = case when v_existing_primary and v_incoming_secondary then jobs.location_text else excluded.location_text end,
+    normalized_location = case when v_existing_primary and v_incoming_secondary then jobs.normalized_location else excluded.normalized_location end,
+    role_family = case when v_existing_primary and v_incoming_secondary then jobs.role_family else excluded.role_family end,
     state = case
-      when jobs.state in ('shortlisted', 'dismissed', 'closed') then jobs.state
+      when jobs.state in ('shortlisted', 'dismissed') then jobs.state
+      when v_existing_primary and v_incoming_secondary and jobs.state = 'verified' then jobs.state
       else excluded.state
     end,
     preliminary_score = excluded.preliminary_score,
-    posted_at = coalesce(excluded.posted_at, jobs.posted_at),
-    closes_at = excluded.closes_at,
+    posted_at = case when v_existing_primary and v_incoming_secondary then jobs.posted_at else coalesce(excluded.posted_at, jobs.posted_at) end,
+    closes_at = case when v_existing_primary and v_incoming_secondary then jobs.closes_at else excluded.closes_at end,
     last_seen_at = now(),
     updated_at = now()
   returning id into v_job_id;
 
   insert into public.job_sources (
     owner_id, job_id, source_endpoint_id, external_job_id, source_url,
-    content_hash, is_verified, verified_at
+    content_hash, is_active, is_verified, verified_at
   ) values (
     p_owner_id, v_job_id, p_source_endpoint_id, p_external_job_id, p_source_url,
-    p_content_hash, p_verification_state = 'verified',
+    p_content_hash, true, p_verification_state = 'verified',
     case when p_verification_state = 'verified' then now() else null end
   )
   on conflict (source_endpoint_id, external_job_id) do nothing
@@ -142,7 +160,24 @@ begin
       job_id = v_job_id,
       source_url = p_source_url,
       last_seen_at = now(),
+      is_active = true,
+      is_verified = p_verification_state = 'verified',
+      verified_at = case when p_verification_state = 'verified' then coalesce(source.verified_at, now()) else null end,
+      updated_at = now()
+    where source.source_endpoint_id = p_source_endpoint_id
+      and source.external_job_id = p_external_job_id
+      and source.content_hash = p_content_hash
+    returning source.id into v_job_source_id;
+
+    if not found then
+    update public.job_sources source
+    set
+      owner_id = p_owner_id,
+      job_id = v_job_id,
+      source_url = p_source_url,
+      last_seen_at = now(),
       content_hash = p_content_hash,
+      is_active = true,
       is_verified = p_verification_state = 'verified',
       verified_at = case when p_verification_state = 'verified' then coalesce(source.verified_at, now()) else null end,
       updated_at = now()
@@ -173,6 +208,7 @@ begin
       where source.source_endpoint_id = p_source_endpoint_id
         and source.external_job_id = p_external_job_id;
     end if;
+    end if;
   end if;
 
   insert into public.job_scores (
@@ -193,6 +229,53 @@ begin
     updated_at = now();
 
   return query select v_job_id, v_source_new, v_content_changed;
+end;
+$$;
+
+create function public.reconcile_secondary_source(
+  p_owner_id uuid,
+  p_source_endpoint_id bigint,
+  p_seen_external_job_ids text[]
+)
+returns integer
+language plpgsql
+set search_path = ''
+as $$
+declare
+  v_closed_count integer := 0;
+begin
+  if not exists (
+    select 1 from public.source_endpoints endpoint
+    where endpoint.id = p_source_endpoint_id
+      and endpoint.owner_id = p_owner_id
+      and endpoint.ats in ('secondary', 'simplify')
+      and endpoint.state <> 'disabled'
+  ) then
+    raise exception 'secondary source endpoint is missing, disabled, or belongs to another owner'
+      using errcode = '23503';
+  end if;
+
+  update public.job_sources source
+  set is_active = false, updated_at = now()
+  where source.owner_id = p_owner_id
+    and source.source_endpoint_id = p_source_endpoint_id
+    and source.is_active
+    and not (source.external_job_id = any(coalesce(p_seen_external_job_ids, array[]::text[])));
+
+  update public.jobs job
+  set state = 'closed', updated_at = now()
+  where job.owner_id = p_owner_id
+    and job.state in ('discovered', 'needs_verification', 'verified', 'shortlisted')
+    and exists (
+      select 1 from public.job_sources source
+      where source.job_id = job.id and source.source_endpoint_id = p_source_endpoint_id
+    )
+    and not exists (
+      select 1 from public.job_sources active_source
+      where active_source.job_id = job.id and active_source.is_active
+    );
+  get diagnostics v_closed_count = row_count;
+  return v_closed_count;
 end;
 $$;
 
@@ -286,9 +369,10 @@ $$;
 revoke all on function public.start_source_run(uuid, text, text) from public, anon, authenticated;
 revoke all on function public.try_start_source_run(uuid, text, text) from public, anon, authenticated;
 revoke all on function public.upsert_discovered_job(
-  uuid, bigint, text, text, text, text, text, text, text, text, text,
+  uuid, bigint, text, text, text, text, text, text, text, text, text, text,
   timestamptz, timestamptz, text, public.job_state,
   smallint, smallint, smallint, smallint, smallint, jsonb
 ) from public, anon, authenticated;
+revoke all on function public.reconcile_secondary_source(uuid, bigint, text[]) from public, anon, authenticated;
 revoke all on function public.record_source_result(bigint, bigint, boolean, integer, integer, text) from public, anon, authenticated;
 revoke all on function public.finish_source_run(bigint) from public, anon, authenticated;

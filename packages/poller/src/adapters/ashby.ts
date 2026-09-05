@@ -8,7 +8,7 @@ export const ashbyAdapter: SourceAdapter = {
   },
   parse(payload, source) {
     const root = record(payload, "Ashby response");
-    return list(root.jobs, "Ashby jobs")
+    const postings = list(root.jobs, "Ashby jobs")
       .filter((value) => record(value, "Ashby job").isListed !== false)
       .map((value) => {
         const job = record(value, "Ashby job");
@@ -17,6 +17,7 @@ export const ashbyAdapter: SourceAdapter = {
         return posting({
           ats: "ashby",
           externalJobId: requiredString(externalJobId, "Ashby id"),
+          companyName: source.companyName,
           title: requiredString(job.title, "Ashby title"),
           canonicalUrl,
           description: optionalString(job.descriptionPlain) ?? optionalString(job.descriptionHtml),
@@ -28,5 +29,6 @@ export const ashbyAdapter: SourceAdapter = {
           metadata: { board: source.boardIdentifier },
         });
       });
+    return { postings, rejectedRowCount: 0 };
   },
 };

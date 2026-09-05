@@ -12,6 +12,7 @@ grant select on table
   public.source_runs,
   public.jobs,
   public.job_sources,
+  public.link_verifications,
   public.job_snapshots,
   public.job_scores,
   public.applications,
@@ -64,13 +65,14 @@ grant execute on function private.delete_expired_data(timestamptz) to service_ro
 grant execute on function public.start_source_run(uuid, text, text) to service_role;
 grant execute on function public.try_start_source_run(uuid, text, text) to service_role;
 grant execute on function public.upsert_discovered_job(
-  uuid, bigint, text, text, text, text, text, text, text, text, text,
+  uuid, bigint, text, text, text, text, text, text, text, text, text, text,
   timestamptz, timestamptz, text, public.job_state,
   smallint, smallint, smallint, smallint, smallint, jsonb
 ) to service_role;
+grant execute on function public.reconcile_secondary_source(uuid, bigint, text[]) to service_role;
 grant execute on function public.record_source_result(bigint, bigint, boolean, integer, integer, text) to service_role;
 grant execute on function public.finish_source_run(bigint) to service_role;
-grant execute on function public.upsert_discovered_job_with_alert(uuid,bigint,text,text,text,text,text,text,text,text,text,timestamptz,timestamptz,text,public.job_state,smallint,smallint,smallint,smallint,smallint,jsonb,bigint,text) to service_role;
+grant execute on function public.upsert_discovered_job_with_alert(uuid,bigint,text,text,text,text,text,text,text,text,text,text,timestamptz,timestamptz,text,public.job_state,smallint,smallint,smallint,smallint,smallint,jsonb,bigint,text) to service_role;
 grant execute on function public.claim_email_outbox(uuid,integer) to service_role;
 grant execute on function public.record_email_send(bigint,text) to service_role;
 grant execute on function public.record_email_failure(bigint,boolean,text) to service_role;

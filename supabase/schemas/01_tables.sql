@@ -67,6 +67,7 @@ create table public.source_endpoints (
   ats public.ats_type not null,
   board_identifier text not null,
   endpoint_url text not null,
+  render_mode public.source_render_mode not null default 'http',
   interval_seconds integer not null,
   next_due_at timestamptz not null default now(),
   last_checked_at timestamptz,
@@ -122,6 +123,7 @@ create table public.jobs (
   id bigint generated always as identity primary key,
   owner_id uuid not null references auth.users (id) on delete cascade,
   company_id bigint references public.companies (id) on delete set null,
+  employer_name text not null,
   title text not null,
   normalized_title text not null,
   canonical_url text,
@@ -139,7 +141,7 @@ create table public.jobs (
   updated_at timestamptz not null default now(),
   saved_at timestamptz,
   applied_at timestamptz,
-  constraint jobs_title_nonempty check (btrim(title) <> '' and btrim(normalized_title) <> ''),
+  constraint jobs_title_nonempty check (btrim(employer_name) <> '' and btrim(title) <> '' and btrim(normalized_title) <> ''),
   constraint jobs_canonical_https check (canonical_url is null or canonical_url ~ '^https://'),
   constraint jobs_score_range check (preliminary_score between 0 and 100),
   constraint jobs_date_order check (closes_at is null or posted_at is null or closes_at >= posted_at),
@@ -156,6 +158,7 @@ create table public.job_sources (
   first_seen_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now(),
   content_hash text not null,
+  is_active boolean not null default true,
   is_verified boolean not null default false,
   verified_at timestamptz,
   created_at timestamptz not null default now(),
@@ -166,6 +169,20 @@ create table public.job_sources (
   constraint job_sources_seen_order check (last_seen_at >= first_seen_at),
   constraint job_sources_verification check ((not is_verified and verified_at is null) or (is_verified and verified_at is not null)),
   unique (source_endpoint_id, external_job_id)
+);
+
+create table public.link_verifications (
+  owner_id uuid not null references auth.users (id) on delete cascade,
+  canonical_url text not null,
+  outcome text not null,
+  http_status smallint,
+  checked_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  constraint link_verifications_https check (canonical_url ~ '^https://'),
+  constraint link_verifications_outcome check (outcome in ('reachable', 'unreachable')),
+  constraint link_verifications_status check (http_status is null or http_status between 100 and 599),
+  constraint link_verifications_expiry check (expires_at > checked_at),
+  primary key (owner_id, canonical_url)
 );
 
 create table public.job_snapshots (

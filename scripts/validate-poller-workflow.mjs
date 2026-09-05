@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-const workflow = readFileSync(".github/workflows/poll.yml", "utf8");
+const workflow = readFileSync(".github/workflows/poll.yml", "utf8").replace(/\r\n/gu, "\n");
 const required = [
   'cron: "2/5 * * * *"',
   "workflow_dispatch:",

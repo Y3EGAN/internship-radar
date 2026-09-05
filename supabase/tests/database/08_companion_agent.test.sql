@@ -7,8 +7,8 @@ insert into auth.users(instance_id,id,aud,role,email,encrypted_password,email_co
 values('00000000-0000-0000-0000-000000000000','a0000000-0000-0000-0000-00000000000a','authenticated','authenticated','companion-owner@example.invalid','',now(),'{}','{}',now(),now());
 insert into public.profiles(owner_id) values('a0000000-0000-0000-0000-00000000000a');
 insert into public.companies(owner_id,name,tier,career_url) values('a0000000-0000-0000-0000-00000000000a','Companion Fixture','A','https://companion.example.invalid/careers');
-insert into public.jobs(owner_id,company_id,title,normalized_title,canonical_url,state)
-select owner_id,id,'Fixture Application','fixture application','https://boards.greenhouse.io/fixture/jobs/1','verified' from public.companies where name='Companion Fixture';
+insert into public.jobs(owner_id,company_id,employer_name,title,normalized_title,canonical_url,state)
+select owner_id,id,name,'Fixture Application','fixture application','https://boards.greenhouse.io/fixture/jobs/1','verified' from public.companies where name='Companion Fixture';
 insert into public.applications(id,owner_id,job_id,state,queued_at)
 select 'a1000000-0000-0000-0000-00000000000a',owner_id,id,'package_ready',now() from public.jobs where normalized_title='fixture application';
 insert into public.application_packages(owner_id,application_id,state,resume_path,answer_manifest,evidence_manifest,verified_at)

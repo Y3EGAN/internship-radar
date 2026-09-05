@@ -20,6 +20,12 @@ export function formatCompanyName(value: EmbeddedCompany): string {
   return resolveCompanyName(value) ?? COMPANY_FALLBACK;
 }
 
+/** Prefer the per-posting employer captured by aggregator feeds, with legacy relation fallback. */
+export function formatEmployerName(employerName: string | null | undefined, company?: EmbeddedCompany): string {
+  const normalized = employerName?.trim();
+  return normalized === undefined || normalized === "" ? formatCompanyName(company) : normalized;
+}
+
 export function formatDate(value: string | null, fallback = "Not listed"): string {
   if (value === null) return fallback;
   const date = new Date(value);

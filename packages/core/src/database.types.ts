@@ -478,6 +478,7 @@ export type Database = {
           external_job_id: string
           first_seen_at: string
           id: number
+          is_active: boolean
           is_verified: boolean
           job_id: number
           last_seen_at: string
@@ -493,6 +494,7 @@ export type Database = {
           external_job_id: string
           first_seen_at?: string
           id?: never
+          is_active?: boolean
           is_verified?: boolean
           job_id: number
           last_seen_at?: string
@@ -508,6 +510,7 @@ export type Database = {
           external_job_id?: string
           first_seen_at?: string
           id?: never
+          is_active?: boolean
           is_verified?: boolean
           job_id?: number
           last_seen_at?: string
@@ -543,6 +546,7 @@ export type Database = {
           created_at: string
           description: string | null
           discovered_at: string
+          employer_name: string
           id: number
           last_seen_at: string
           location_text: string | null
@@ -565,6 +569,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discovered_at?: string
+          employer_name: string
           id?: never
           last_seen_at?: string
           location_text?: string | null
@@ -587,6 +592,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discovered_at?: string
+          employer_name?: string
           id?: never
           last_seen_at?: string
           location_text?: string | null
@@ -610,6 +616,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      link_verifications: {
+        Row: {
+          canonical_url: string
+          checked_at: string
+          expires_at: string
+          http_status: number | null
+          outcome: string
+          owner_id: string
+        }
+        Insert: {
+          canonical_url: string
+          checked_at?: string
+          expires_at: string
+          http_status?: number | null
+          outcome: string
+          owner_id: string
+        }
+        Update: {
+          canonical_url?: string
+          checked_at?: string
+          expires_at?: string
+          http_status?: number | null
+          outcome?: string
+          owner_id?: string
+        }
+        Relationships: []
       }
       profile_evidence: {
         Row: {
@@ -787,6 +820,7 @@ export type Database = {
           last_success_at: string | null
           next_due_at: string
           owner_id: string
+          render_mode: Database["public"]["Enums"]["source_render_mode"]
           state: Database["public"]["Enums"]["source_state"]
           updated_at: string
           verified_at: string | null
@@ -805,6 +839,7 @@ export type Database = {
           last_success_at?: string | null
           next_due_at?: string
           owner_id: string
+          render_mode?: Database["public"]["Enums"]["source_render_mode"]
           state?: Database["public"]["Enums"]["source_state"]
           updated_at?: string
           verified_at?: string | null
@@ -823,6 +858,7 @@ export type Database = {
           last_success_at?: string | null
           next_due_at?: string
           owner_id?: string
+          render_mode?: Database["public"]["Enums"]["source_render_mode"]
           state?: Database["public"]["Enums"]["source_state"]
           updated_at?: string
           verified_at?: string | null
@@ -1017,6 +1053,14 @@ export type Database = {
         }
         Returns: Database["public"]["Enums"]["source_state"]
       }
+      reconcile_secondary_source: {
+        Args: {
+          p_owner_id: string
+          p_seen_external_job_ids: string[]
+          p_source_endpoint_id: number
+        }
+        Returns: number
+      }
       revoke_device_token: { Args: { p_token_id: number }; Returns: boolean }
       start_source_run: {
         Args: {
@@ -1045,6 +1089,7 @@ export type Database = {
           p_evidence_fit: number
           p_explanation_inputs: Json
           p_external_job_id: string
+          p_employer_name: string
           p_location_fit: number
           p_location_text: string
           p_normalized_location: string
@@ -1076,6 +1121,7 @@ export type Database = {
           p_evidence_fit: number
           p_explanation_inputs: Json
           p_external_job_id: string
+          p_employer_name: string
           p_location_fit: number
           p_location_text: string
           p_normalized_location: string
@@ -1122,6 +1168,7 @@ export type Database = {
         | "hosted_json"
         | "simplify"
         | "secondary"
+        | "career_page"
       delivery_state:
         | "sent"
         | "delivered"
@@ -1151,6 +1198,7 @@ export type Database = {
         | "verified"
         | "superseded"
       run_outcome: "running" | "succeeded" | "partial" | "failed" | "skipped"
+      source_render_mode: "http" | "browser"
       source_state: "healthy" | "degraded" | "failing" | "disabled"
     }
     CompositeTypes: {
@@ -1304,6 +1352,7 @@ export const Constants = {
         "hosted_json",
         "simplify",
         "secondary",
+        "career_page",
       ],
       delivery_state: [
         "sent",
@@ -1338,6 +1387,7 @@ export const Constants = {
         "superseded",
       ],
       run_outcome: ["running", "succeeded", "partial", "failed", "skipped"],
+      source_render_mode: ["http", "browser"],
       source_state: ["healthy", "degraded", "failing", "disabled"],
     },
   },

@@ -34,7 +34,7 @@ An invalid signature must continue to return an error and make no database write
 
 1. Export the four Sheet tabs to one private JSON snapshot following `docs/tracker-export-format.md`. Keep the export under the ignored `tmp/` path.
 2. Add the current CV facts to `profileEvidence` only after each claim is verified against the CV or another named source. Do not infer dates, metrics, eligibility, or skills.
-3. Run `pnpm migration:plan -- <private-export.json> --registry config/public-source-registry.json --report <ignored-counts-report.json>` so the 98 independently verified public employer endpoints are merged into the private snapshot.
+3. Run `pnpm migration:plan -- <private-export.json> --registry config/public-source-registry.json --report <ignored-counts-report.json>` so the 103 currently active public endpoints are merged into the private snapshot; Temporal Technologies remains disabled after its API returned HTTP 404.
 4. Resolve every rejection. The report accounts for accepted, duplicate, and rejected rows but contains no imported content.
 5. For an authorized apply, copy the printed plan fingerprint and set `RADAR_MIGRATION_APPLY_CONFIRM=APPLY:<fingerprint>` only for that command. The importer also requires the server-only Supabase URL, service-role key, and owner UUID. It refuses any snapshot with a rejection.
 6. Re-run the same snapshot to prove idempotency, then compare destination counts and statuses against the source report.

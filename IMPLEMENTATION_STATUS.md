@@ -152,6 +152,19 @@ Gate evidence: `docs/phase-7-evidence.md`.
 
 Current evidence: `docs/phase-8-evidence.md`. The Phase 8 gate is intentionally open.
 
+## Target-company direct discovery extension
+
+- [x] Preserve the existing broad North America internship-feed route for all 45 requested companies.
+- [x] Link every target to an active direct source or a dated disabled record.
+- [x] Add 14 newly verified direct sources, bringing target direct coverage to 25 active and 20 disabled.
+- [x] Add Workday public POST validation and correct its enforced 20-row request limit.
+- [x] Add deterministic careers-page parsing for JobPosting JSON-LD and internship links.
+- [x] Add bounded HTTP-to-Chromium fallback, heavy-resource blocking, failure isolation, and guaranteed cleanup.
+- [x] Keep the five-minute workflow cadence, three-minute internal deadline, two-per-domain concurrency, overlap guard, and four-minute workflow timeout unchanged.
+- [x] Pass the 117-of-117 bounded live endpoint gate on 2026-09-05.
+
+Inventory: `docs/target-company-direct-coverage.md`.
+
 ## External actions reserved for Phase 8
 
 Authorization has been granted. Supabase provisioning, GitHub OAuth owner login, public repository publication, Vercel production deployment, private migration apply, source import, and hosted polling are complete. Resend delivery/webhook validation, application/package/local-agent E2E, explicit migration re-apply evidence, Google Sheet cutover, and final provider-plan attestation remain open.

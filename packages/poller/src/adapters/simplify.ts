@@ -8,25 +8,35 @@ export const simplifyAdapter: SourceAdapter = {
     return { url: source.endpointUrl, init: { headers: { accept: "application/json" } } };
   },
   parse(payload, source) {
-    return list(payload, "Simplify listings").filter((value) => record(value, "Simplify listing").active !== false).map((value) => {
-      const job = record(value, "Simplify listing");
-      const url = requiredString(job.url, "Simplify URL");
-      const locations = job.locations === undefined ? [] : list(job.locations, "Simplify locations");
-      const timestamp = typeof job.date_posted === "number" ? new Date(job.date_posted * 1_000).toISOString() : undefined;
-      return posting({
-        ats: "simplify",
-        externalJobId: stableContentHash(url),
-        title: requiredString(job.title, "Simplify title"),
-        canonicalUrl: url,
-        description: "",
-        location: locations.filter((item): item is string => typeof item === "string").join("; "),
-        postedAt: timestamp,
-        verificationState: "needs_verification",
-        metadata: {
-          board: source.boardIdentifier,
-          company: optionalString(job.company_name) ?? "unknown",
-        },
-      });
-    });
+    const postings = [];
+    let rejectedRowCount = 0;
+    for (const value of list(payload, "Simplify listings")) {
+      try {
+        const job = record(value, "Simplify listing");
+        if (job.active === false) continue;
+        const url = requiredString(job.url, "Simplify URL");
+        const locations = job.locations === undefined ? [] : list(job.locations, "Simplify locations");
+        const timestamp = typeof job.date_posted === "number" ? new Date(job.date_posted * 1_000).toISOString() : undefined;
+        postings.push(posting({
+          ats: "simplify",
+          externalJobId: stableContentHash(url),
+          companyName: requiredString(job.company_name, "Simplify company"),
+          title: requiredString(job.title, "Simplify title"),
+          canonicalUrl: url,
+          description: "",
+          location: locations.filter((item): item is string => typeof item === "string").join("; "),
+          postedAt: timestamp,
+          verificationState: "needs_verification",
+          sourceUrl: source.endpointUrl,
+          metadata: {
+            board: source.boardIdentifier,
+            company: optionalString(job.company_name) ?? "unknown",
+          },
+        }));
+      } catch {
+        rejectedRowCount += 1;
+      }
+    }
+    return { postings, rejectedRowCount };
   },
 };

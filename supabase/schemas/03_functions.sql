@@ -25,7 +25,7 @@ begin
     or (old.state = 'verified' and new.state in ('needs_verification', 'shortlisted', 'dismissed', 'closed'))
     or (old.state = 'shortlisted' and new.state in ('verified', 'dismissed', 'closed'))
     or (old.state = 'dismissed' and new.state in ('verified', 'closed'))
-    or (old.state = 'closed' and new.state = 'verified')
+    or (old.state = 'closed' and new.state in ('needs_verification', 'verified'))
   ) then
     raise exception 'invalid job state transition from % to %', old.state, new.state
       using errcode = '23514';

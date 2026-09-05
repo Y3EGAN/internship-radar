@@ -9,7 +9,7 @@ export const greenhouseAdapter: SourceAdapter = {
   },
   parse(payload, source: SourceDefinition) {
     const root = record(payload, "Greenhouse response");
-    return list(root.jobs, "Greenhouse jobs").map((value) => {
+    const postings = list(root.jobs, "Greenhouse jobs").map((value) => {
       const job = record(value, "Greenhouse job");
       const location = job.location === undefined ? undefined : optionalString(record(job.location, "Greenhouse location").name);
       const departments = job.departments === undefined ? [] : list(job.departments, "Greenhouse departments");
@@ -17,6 +17,7 @@ export const greenhouseAdapter: SourceAdapter = {
       return posting({
         ats: "greenhouse",
         externalJobId: String(job.id),
+        companyName: source.companyName,
         title: requiredString(job.title, "Greenhouse title"),
         canonicalUrl: requiredString(job.absolute_url, "Greenhouse absolute_url"),
         description: optionalString(job.content),
@@ -27,5 +28,6 @@ export const greenhouseAdapter: SourceAdapter = {
         metadata: { board: source.boardIdentifier },
       });
     });
+    return { postings, rejectedRowCount: 0 };
   },
 };

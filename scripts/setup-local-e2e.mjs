@@ -18,7 +18,7 @@ const [company] = await request("/rest/v1/companies", {
   owner_id: ownerId, name: "E2E Robotics", tier: "A", priority: 100, career_url: "https://jobs.example.invalid/e2e",
 });
 const [job] = await request("/rest/v1/jobs", {
-  owner_id: ownerId, company_id: company.id, title: "Robotics Software Intern", normalized_title: "robotics software intern",
+  owner_id: ownerId, company_id: company.id, employer_name: "E2E Robotics", title: "Robotics Software Intern", normalized_title: "robotics software intern",
   canonical_url: "https://jobs.example.invalid/e2e/robotics-intern", description: "Sanitized browser fixture.",
   location_text: "Toronto, ON", normalized_location: "toronto on", role_family: "robotics", state: "verified", preliminary_score: 92,
 });

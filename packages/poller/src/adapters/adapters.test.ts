@@ -29,7 +29,7 @@ describe("ATS adapters", () => {
     ["hosted_json", hostedJsonAdapter, hostedJsonPayload],
     ["simplify", simplifyAdapter, simplifyPayload],
   ] as const)("normalizes a sanitized %s fixture", (key, adapter, payload) => {
-    const postings = adapter.parse(payload, fixtureSources[key]);
+    const { postings } = adapter.parse(payload, fixtureSources[key]);
     expect(postings).toHaveLength(1);
     expect(postings[0]).toMatchObject({ ats: key, normalizedLocation: expect.any(String) });
     expect(postings[0]?.canonicalUrl).not.toMatch(/(?:utm_|gh_src|lever-source)/u);
@@ -37,7 +37,7 @@ describe("ATS adapters", () => {
   });
 
   it("treats the secondary feed as unverified until an employer URL is resolved", () => {
-    expect(simplifyAdapter.parse(simplifyPayload, fixtureSources.simplify)[0]?.verificationState).toBe("needs_verification");
+    expect(simplifyAdapter.parse(simplifyPayload, fixtureSources.simplify).postings[0]?.verificationState).toBe("needs_verification");
   });
 
   it("builds bounded public discovery requests without application endpoints", () => {
@@ -45,6 +45,7 @@ describe("ATS adapters", () => {
     expect(leverAdapter.buildRequest(fixtureSources.lever).url).toContain("mode=json");
     expect(ashbyAdapter.buildRequest(fixtureSources.ashby).url).toContain("posting-api/job-board");
     expect(workdayAdapter.buildRequest(fixtureSources.workday).init?.method).toBe("POST");
+    expect(JSON.parse(String(workdayAdapter.buildRequest(fixtureSources.workday).init?.body))).toMatchObject({ limit: 20 });
     expect(smartRecruitersAdapter.buildRequest(fixtureSources.smartrecruiters).url).toContain("/postings");
   });
 

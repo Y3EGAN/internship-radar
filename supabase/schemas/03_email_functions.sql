@@ -1,5 +1,6 @@
 create function public.upsert_discovered_job_with_alert(
   p_owner_id uuid, p_source_endpoint_id bigint, p_external_job_id text,
+  p_employer_name text,
   p_title text, p_normalized_title text, p_canonical_url text, p_source_url text,
   p_description text, p_location_text text, p_normalized_location text, p_role_family text,
   p_posted_at timestamptz, p_closes_at timestamptz, p_content_hash text,
@@ -16,7 +17,7 @@ declare
   v_event_key text;
 begin
   select * into v_result from public.upsert_discovered_job(
-    p_owner_id, p_source_endpoint_id, p_external_job_id, p_title, p_normalized_title,
+    p_owner_id, p_source_endpoint_id, p_external_job_id, p_employer_name, p_title, p_normalized_title,
     p_canonical_url, p_source_url, p_description, p_location_text, p_normalized_location,
     p_role_family, p_posted_at, p_closes_at, p_content_hash, p_verification_state,
     p_domain_fit, p_skill_fit, p_evidence_fit, p_location_fit, p_eligibility_freshness,
@@ -175,7 +176,7 @@ begin
 end;
 $$;
 
-revoke all on function public.upsert_discovered_job_with_alert(uuid,bigint,text,text,text,text,text,text,text,text,text,timestamptz,timestamptz,text,public.job_state,smallint,smallint,smallint,smallint,smallint,jsonb,bigint,text) from public, anon, authenticated;
+revoke all on function public.upsert_discovered_job_with_alert(uuid,bigint,text,text,text,text,text,text,text,text,text,text,timestamptz,timestamptz,text,public.job_state,smallint,smallint,smallint,smallint,smallint,jsonb,bigint,text) from public, anon, authenticated;
 revoke all on function public.claim_email_outbox(uuid,integer) from public, anon, authenticated;
 revoke all on function public.record_email_send(bigint,text) from public, anon, authenticated;
 revoke all on function public.record_email_failure(bigint,boolean,text) from public, anon, authenticated;

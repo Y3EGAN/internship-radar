@@ -4,6 +4,31 @@ import { requestJson, SourceRequestError } from "./http";
 const request = { url: "https://api.example.invalid/jobs" } as const;
 
 describe("bounded source HTTP client", () => {
+  it("routes browser requests through the rendered transport", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response("plain"));
+    const renderFetchImpl = vi.fn().mockResolvedValue(new Response("<main>rendered</main>"));
+
+    const response = await requestJson(
+      { ...request, responseType: "text", transport: "browser" },
+      { fetchImpl, renderFetchImpl },
+    );
+
+    expect(response.payload).toBe("<main>rendered</main>");
+    expect(renderFetchImpl).toHaveBeenCalledOnce();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("fails safely when browser transport is unavailable", async () => {
+    await expect(requestJson(
+      { url: "https://secret.example.invalid/private", responseType: "text", transport: "browser" },
+      { fetchImpl: vi.fn() },
+    )).rejects.toMatchObject({
+      kind: "network_error",
+      retryable: false,
+      message: "rendered source transport is unavailable",
+    });
+  });
+
   it("honors Retry-After on 429 and succeeds on a bounded retry", async () => {
     const fetchImpl = vi.fn()
       .mockResolvedValueOnce(new Response("{}", { status: 429, headers: { "retry-after": "2" } }))

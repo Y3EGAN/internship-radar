@@ -8,7 +8,7 @@ export const smartRecruitersAdapter: SourceAdapter = {
   },
   parse(payload, source) {
     const root = record(payload, "SmartRecruiters response");
-    return list(root.content, "SmartRecruiters content").map((value) => {
+    const postings = list(root.content, "SmartRecruiters content").map((value) => {
       const job = record(value, "SmartRecruiters posting");
       const id = requiredString(job.uuid ?? job.id, "SmartRecruiters id");
       const locationRecord = job.location === undefined ? {} : record(job.location, "SmartRecruiters location");
@@ -20,6 +20,7 @@ export const smartRecruitersAdapter: SourceAdapter = {
       return posting({
         ats: "smartrecruiters",
         externalJobId: id,
+        companyName: source.companyName,
         title: requiredString(job.name ?? job.title, "SmartRecruiters title"),
         canonicalUrl: `https://jobs.smartrecruiters.com/${encodeURIComponent(source.boardIdentifier)}/${encodeURIComponent(id)}`,
         description: optionalString(job.jobAd) ?? "",
@@ -30,5 +31,6 @@ export const smartRecruitersAdapter: SourceAdapter = {
         metadata: { board: source.boardIdentifier },
       });
     });
+    return { postings, rejectedRowCount: 0 };
   },
 };

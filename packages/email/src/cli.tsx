@@ -39,13 +39,13 @@ function jobIds(payload: unknown): readonly number[] {
 async function loadJobs(ids: readonly number[]): Promise<readonly PriorityJobEmailItem[]> {
   if (ids.length === 0) return [];
   const query = new URLSearchParams({
-    select: "id,title,location_text,preliminary_score,canonical_url,companies(name)",
+    select: "id,title,employer_name,location_text,preliminary_score,canonical_url,companies(name)",
     owner_id: `eq.${ownerId}`,
     id: `in.(${ids.join(",")})`,
     order: "preliminary_score.desc,id.asc",
   });
   const rows = await databaseRequest(`jobs?${query.toString()}`) as ReadonlyArray<{
-    title: string; location_text: string | null; preliminary_score: number; canonical_url: string;
+    title: string; employer_name: string; location_text: string | null; preliminary_score: number; canonical_url: string;
     companies: { name: string } | readonly { name: string }[] | null;
   }>;
   function companyName(value: { name: string } | readonly { name: string }[] | null): string {
@@ -55,7 +55,7 @@ async function loadJobs(ids: readonly number[]): Promise<readonly PriorityJobEma
   }
   return rows.map((row) => ({
     title: row.title,
-    company: companyName(row.companies),
+    company: row.employer_name.trim() || companyName(row.companies),
     location: row.location_text ?? "",
     score: Number(row.preliminary_score),
     url: row.canonical_url,

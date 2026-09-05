@@ -72,4 +72,39 @@ describe("tracker migration plan", () => {
     expect(plan.sources).toHaveLength(2);
     expect(plan.sources[1]).not.toHaveProperty("jobsAtVerification");
   });
+
+  it("retains browser rendering for a careers-page source", () => {
+    const input = structuredClone(valid);
+    input.searchSources[0] = {
+      ...input.searchSources[0],
+      ats: "career_page",
+      boardIdentifier: "example-careers",
+      endpointUrl: "https://careers.example.invalid/jobs",
+      intervalSeconds: 86_400,
+      renderMode: "browser",
+    } as typeof input.searchSources[number];
+
+    expect(buildMigrationPlan(input).sources[0]).toMatchObject({
+      ats: "career_page",
+      renderMode: "browser",
+    });
+  });
+
+  it("accepts disabled careers-page sources in the public registry", () => {
+    expect(() => mergePublicSourceRegistry(valid, {
+      verifiedAt: "2026-09-04T12:00:00Z",
+      method: "Sanitized verification fixture",
+      sources: [{ ...valid.searchSources[0], jobsAtVerification: 3 }],
+      disabledSources: [{
+        company: "Example Careers",
+        ats: "career_page",
+        boardIdentifier: "example-careers",
+        careerUrl: "https://example.invalid/careers",
+        endpointUrl: "https://example.invalid/careers/jobs",
+        renderMode: "browser",
+        lastCheckedAt: "2026-09-04T12:00:00Z",
+        disabledReason: "No stable public job listing was available during verification.",
+      }],
+    })).not.toThrow();
+  });
 });

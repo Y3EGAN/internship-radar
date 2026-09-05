@@ -20,6 +20,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const MAX_ARTIFACT_BYTES = 5_000_000;
 
 function localRoot() {
+  if (process.env.RADAR_PREPARATION_ROOT) return resolve(process.env.RADAR_PREPARATION_ROOT);
   return join(process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local"), "InternshipRadar");
 }
 
@@ -101,6 +102,17 @@ function unprotectToken(ciphertext) {
 }
 
 function readConfiguration(root) {
+  const environmentToken = process.env.CODEX_PREPARATION_TOKEN ?? "";
+  const environmentResume = process.env.RADAR_BASE_RESUME ?? "";
+  if (environmentToken && environmentResume) {
+    if (Buffer.byteLength(environmentToken, "utf8") < 32) throw new Error("Preparation process credential is invalid");
+    if (!existsSync(environmentResume)) throw new Error("Configured private base resume is unavailable");
+    return {
+      baseUrl: assertHttpsUrl(process.env.RADAR_URL ?? DEFAULT_URL),
+      baseResumePath: resolve(environmentResume),
+      token: environmentToken,
+    };
+  }
   const configPath = join(root, CONFIG_FILE);
   const tokenPath = join(root, TOKEN_FILE);
   if (!existsSync(configPath) || !existsSync(tokenPath)) return null;
@@ -321,6 +333,54 @@ function rotateVercelCredential(root, arguments_) {
   }
 }
 
+function vercelEnvironmentCommand(vercelCwd, arguments_, token) {
+  const npxCli = join(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js");
+  if (!existsSync(npxCli)) throw new Error("Vercel CLI launcher is unavailable");
+  execFileSync(process.execPath, [npxCli, "--yes", "vercel@latest", ...arguments_, "--cwd", vercelCwd], {
+    cwd: vercelCwd,
+    input: token,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+    windowsHide: true,
+    timeout: 120_000,
+  });
+}
+
+function provisionVercelRunner(arguments_) {
+  const cwdIndex = arguments_.indexOf("--vercel-cwd");
+  const vercelCwd = cwdIndex >= 0 ? resolve(arguments_[cwdIndex + 1] ?? "") : "";
+  const projectFile = vercelCwd ? join(vercelCwd, ".vercel", "project.json") : "";
+  if (!projectFile || !existsSync(projectFile)) throw new Error("A linked Vercel project directory is required");
+  const project = JSON.parse(readFileSync(projectFile, "utf8"));
+  if (project.projectName !== "internship-radar-web") throw new Error("Refusing to update an unexpected Vercel project");
+  let token = randomBytes(48).toString("base64url");
+  try {
+    vercelEnvironmentCommand(
+      vercelCwd,
+      ["env", "update", "CODEX_PREPARATION_TOKEN", "production", "--sensitive", "--yes"],
+      token,
+    );
+    try {
+      vercelEnvironmentCommand(
+        vercelCwd,
+        ["env", "update", "CODEX_PREPARATION_TOKEN", "development", "--yes"],
+        token,
+      );
+    } catch {
+      vercelEnvironmentCommand(
+        vercelCwd,
+        ["env", "add", "CODEX_PREPARATION_TOKEN", "development"],
+        token,
+      );
+    }
+    return { state: "provider_configured" };
+  } catch {
+    throw new Error("Vercel preparation runner provisioning failed");
+  } finally {
+    token = "";
+  }
+}
+
 async function run() {
   const [command, ...arguments_] = process.argv.slice(2);
   const root = localRoot();
@@ -334,6 +394,10 @@ async function run() {
   }
   if (command === "rotate-vercel") {
     process.stdout.write(`${JSON.stringify(rotateVercelCredential(root, arguments_))}\n`);
+    return;
+  }
+  if (command === "provision-vercel-runner") {
+    process.stdout.write(`${JSON.stringify(provisionVercelRunner(arguments_))}\n`);
     return;
   }
   const configuration = readConfiguration(root);

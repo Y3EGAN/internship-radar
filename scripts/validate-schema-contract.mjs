@@ -15,7 +15,7 @@ const requiredTables = [
   "jobs", "job_sources", "job_snapshots", "job_scores", "applications",
   "application_packages", "screening_answers", "application_events", "email_outbox",
   "email_deliveries", "resend_webhook_events", "email_suppressions", "device_pairings",
-  "device_tokens",
+  "device_tokens", "link_verifications",
 ];
 
 for (const table of requiredTables) {

@@ -9,7 +9,7 @@ describe("poller repository", () => {
       data: [{ job_id: 42, source_new: true, content_changed: false }],
       error: null,
     });
-    const posting = greenhouseAdapter.parse(greenhousePayload, fixtureSources.greenhouse)[0]!;
+    const posting = greenhouseAdapter.parse(greenhousePayload, fixtureSources.greenhouse).postings[0]!;
     const result = await persistPosting({ rpc }, fixtureSources.greenhouse, posting, {
       components: { domain: 25, skill: 24, evidence: 16, location: 8, eligibilityFreshness: 9 },
       total: 82,

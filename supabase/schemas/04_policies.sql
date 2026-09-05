@@ -10,6 +10,7 @@ begin
     'source_runs',
     'jobs',
     'job_sources',
+    'link_verifications',
     'job_snapshots',
     'job_scores',
     'applications',

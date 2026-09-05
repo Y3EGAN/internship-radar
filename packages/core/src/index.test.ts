@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isTargetInternship } from "./discovery";
+import { isCanadaOrUnitedStatesLocation, isTargetInternship, sourceDefinitionSchema } from "./discovery";
 import { scoreComponentSchema, totalScore } from "./index";
 
 describe("score bounds", () => {
@@ -45,5 +45,38 @@ describe("internship discovery boundary", () => {
     ["Graduate Software Engineer", "Full-time"],
   ])("rejects a non-internship posting in %s", (title, employmentType) => {
     expect(isTargetInternship({ title, ...(employmentType ? { employmentType } : {}) })).toBe(false);
+  });
+});
+
+describe("Canada and United States location eligibility", () => {
+  it.each(["Toronto, ON", "Vancouver, Canada", "Austin, TX", "New York, United States", "Remote - Canada", "North America Remote"])("includes %s", (location) => {
+    expect(isCanadaOrUnitedStatesLocation(location)).toBe(true);
+  });
+
+  it.each(["Remote", "Mexico City, Mexico", "London, United Kingdom", "Worldwide"])("excludes %s", (location) => {
+    expect(isCanadaOrUnitedStatesLocation(location)).toBe(false);
+  });
+});
+
+describe("source definition contract", () => {
+  const source = {
+    id: 13,
+    ownerId: "40000000-0000-4000-8000-000000000004",
+    ats: "career_page",
+    boardIdentifier: "example-careers",
+    endpointUrl: "https://careers.example.invalid/jobs",
+    companyName: "Example Careers",
+  };
+
+  it("accepts a browser-rendered careers page", () => {
+    expect(sourceDefinitionSchema.parse({ ...source, renderMode: "browser" })).toMatchObject({
+      ats: "career_page",
+      renderMode: "browser",
+    });
+  });
+
+  it("defaults an ordinary source to HTTP and rejects unknown render modes", () => {
+    expect(sourceDefinitionSchema.parse({ ...source, ats: "greenhouse" })).toMatchObject({ renderMode: "http" });
+    expect(() => sourceDefinitionSchema.parse({ ...source, renderMode: "interactive" })).toThrow();
   });
 });

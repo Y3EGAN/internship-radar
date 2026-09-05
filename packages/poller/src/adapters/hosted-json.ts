@@ -8,12 +8,13 @@ export const hostedJsonAdapter: SourceAdapter = {
   },
   parse(payload, source) {
     const rows = Array.isArray(payload) ? payload : list(record(payload, "Hosted JSON response").jobs, "Hosted JSON jobs");
-    return rows.map((value) => {
+    const postings = rows.map((value) => {
       const job = record(value, "Hosted JSON job");
       const canonicalUrl = requiredString(job.url ?? job.canonicalUrl, "Hosted JSON URL");
       return posting({
         ats: "hosted_json",
         externalJobId: requiredString(job.id ?? canonicalUrl, "Hosted JSON id"),
+        companyName: optionalString(job.companyName ?? job.company) ?? source.companyName,
         title: requiredString(job.title, "Hosted JSON title"),
         canonicalUrl,
         description: optionalString(job.description),
@@ -26,5 +27,6 @@ export const hostedJsonAdapter: SourceAdapter = {
         metadata: { board: source.boardIdentifier },
       });
     });
+    return { postings, rejectedRowCount: 0 };
   },
 };

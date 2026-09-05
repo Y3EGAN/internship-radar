@@ -42,6 +42,7 @@ function toIssue(error: unknown): SourceRequestError {
 
 export interface RequestJsonOptions {
   readonly fetchImpl?: FetchLike;
+  readonly renderFetchImpl?: FetchLike;
   readonly timeoutMs?: number;
   readonly maxAttempts?: number;
   readonly now?: () => number;
@@ -49,13 +50,18 @@ export interface RequestJsonOptions {
   readonly jitter?: (maximum: number) => number;
 }
 
-export interface JsonResponse {
+export interface SourceResponse {
   readonly payload: unknown;
   readonly attempts: number;
 }
 
-export async function requestJson(request: AdapterRequest, options: RequestJsonOptions = {}): Promise<JsonResponse> {
-  const fetchImpl = options.fetchImpl ?? fetch;
+export async function requestSource(request: AdapterRequest, options: RequestJsonOptions = {}): Promise<SourceResponse> {
+  const fetchImpl = request.transport === "browser"
+    ? options.renderFetchImpl
+    : options.fetchImpl ?? fetch;
+  if (fetchImpl === undefined) {
+    throw new SourceRequestError("network_error", "rendered source transport is unavailable", false);
+  }
   const timeoutMs = options.timeoutMs ?? DEFAULT_SOURCE_TIMEOUT_MS;
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const now = options.now ?? Date.now;
@@ -70,9 +76,14 @@ export async function requestJson(request: AdapterRequest, options: RequestJsonO
       const response = await fetchImpl(request.url, { ...request.init, signal: controller.signal });
       if (!response.ok) throw issueFromStatus(response.status, response.headers.get("retry-after"), now());
       try {
-        return { payload: await response.json(), attempts: attempt };
+        return { payload: request.responseType === "text" ? await response.text() : await response.json(), attempts: attempt };
       } catch {
-        throw new SourceRequestError("malformed_payload", "source returned invalid JSON", false, response.status);
+        throw new SourceRequestError(
+          "malformed_payload",
+          request.responseType === "text" ? "source returned unreadable text" : "source returned invalid JSON",
+          false,
+          response.status,
+        );
       }
     } catch (error) {
       lastError = toIssue(error);
@@ -86,6 +97,8 @@ export async function requestJson(request: AdapterRequest, options: RequestJsonO
   }
   throw lastError ?? new SourceRequestError("network_error", "source request failed", true);
 }
+
+export const requestJson = requestSource;
 
 export function sanitizeSourceIssue(error: unknown): SourceIssue {
   const issue = toIssue(error);

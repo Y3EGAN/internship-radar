@@ -12,12 +12,12 @@ insert into public.companies(owner_id,name,tier,career_url)
 values ('90000000-0000-0000-0000-000000000009','Preparation Fixture Robotics','A','https://prepare.example.invalid/careers');
 insert into public.source_endpoints(owner_id,company_id,ats,board_identifier,endpoint_url,interval_seconds)
 select owner_id,id,'greenhouse','preparation-fixture','https://prepare.example.invalid/jobs.json',900 from public.companies where name='Preparation Fixture Robotics';
-insert into public.jobs(owner_id,company_id,title,normalized_title,canonical_url,state,preliminary_score)
-select owner_id,id,'Verified Internship','verified internship','https://prepare.example.invalid/jobs/verified','verified'::public.job_state,85 from public.companies where name='Preparation Fixture Robotics'
+insert into public.jobs(owner_id,company_id,employer_name,title,normalized_title,canonical_url,state,preliminary_score)
+select owner_id,id,name,'Verified Internship','verified internship','https://prepare.example.invalid/jobs/verified','verified'::public.job_state,85 from public.companies where name='Preparation Fixture Robotics'
 union all
-select owner_id,id,'Second Verified Internship','second verified internship','https://prepare.example.invalid/jobs/second','verified'::public.job_state,84 from public.companies where name='Preparation Fixture Robotics'
+select owner_id,id,name,'Second Verified Internship','second verified internship','https://prepare.example.invalid/jobs/second','verified'::public.job_state,84 from public.companies where name='Preparation Fixture Robotics'
 union all
-select owner_id,id,'Unverified Internship','unverified internship','https://prepare.example.invalid/jobs/unverified','discovered'::public.job_state,70 from public.companies where name='Preparation Fixture Robotics';
+select owner_id,id,name,'Unverified Internship','unverified internship','https://prepare.example.invalid/jobs/unverified','discovered'::public.job_state,70 from public.companies where name='Preparation Fixture Robotics';
 insert into public.job_sources(owner_id,job_id,source_endpoint_id,external_job_id,source_url,content_hash,is_verified,verified_at)
 select job.owner_id,job.id,endpoint.id,'fixture-'||job.id,job.canonical_url,repeat('e',64),true,now()
 from public.jobs job join public.source_endpoints endpoint on endpoint.owner_id=job.owner_id
