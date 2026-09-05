@@ -155,6 +155,8 @@ test("rejects material claims without evidence identifiers before upload", async
 });
 
 test("the Vercel runner injects the narrow development environment without putting secrets in arguments", () => {
+  const linuxNode = "/opt/hostedtoolcache/node/22.22.0/x64/bin/node";
+  const linuxNpx = "/opt/hostedtoolcache/node/22.22.0/x64/bin/npx";
   const invocation = buildRunnerInvocation(
     {
       baseResumePath: "C:\\private\\base.pdf",
@@ -163,7 +165,11 @@ test("the Vercel runner injects the narrow development environment without putti
       baseUrl: "https://radar.example.invalid",
     },
     "next",
+    [],
+    { executable: linuxNode, platform: "linux", pathExists: (path) => path === linuxNpx },
   );
+  assert.equal(invocation.executable, linuxNpx);
+  assert.equal(invocation.arguments.includes("npx-cli.js"), false);
   assert.equal(invocation.arguments.includes("development"), true);
   assert.equal(invocation.arguments.includes("production"), false);
   assert.equal(invocation.arguments.includes("CODEX_PREPARATION_TOKEN"), false);

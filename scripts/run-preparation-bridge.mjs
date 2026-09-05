@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, posix, resolve, win32 } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -25,13 +25,20 @@ export function readRunnerConfiguration(path = defaultConfigPath) {
   };
 }
 
-export function buildRunnerInvocation(configuration, command, arguments_ = []) {
-  const npxCli = join(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js");
-  if (!existsSync(npxCli)) throw new Error("Vercel CLI launcher is unavailable");
+export function buildRunnerInvocation(configuration, command, arguments_ = [], runtime = {
+  executable: process.execPath,
+  platform: process.platform,
+  pathExists: existsSync,
+}) {
+  const pathApi = runtime.platform === "win32" ? win32 : posix;
+  const npxExecutable = pathApi.join(
+    pathApi.dirname(runtime.executable),
+    runtime.platform === "win32" ? "npx.cmd" : "npx",
+  );
+  if (!runtime.pathExists(npxExecutable)) throw new Error("Vercel CLI launcher is unavailable");
   return {
-    executable: process.execPath,
+    executable: npxExecutable,
     arguments: [
-      npxCli,
       "--yes",
       "vercel@latest",
       "env",
@@ -41,7 +48,7 @@ export function buildRunnerInvocation(configuration, command, arguments_ = []) {
       "--cwd",
       configuration.vercelCwd,
       "--",
-      process.execPath,
+      runtime.executable,
       join(repositoryRoot, "scripts", "preparation-bridge.mjs"),
       command,
       ...arguments_,
